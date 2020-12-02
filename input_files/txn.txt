@@ -1,0 +1,3 @@
+deposit,0,1,300
+withdraw,0,-1,200.55
+transfer,0,1,100.50
