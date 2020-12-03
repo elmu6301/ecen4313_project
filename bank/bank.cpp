@@ -77,94 +77,94 @@ void Bank::initAccounts(std::vector <float> &startingBalances){
 }
 
 
-int Bank::deposit(int accountID, float amount){
-    //Account must exist within the system
-    if(accountID>= NUM_ACCOUNTS || amount < 0){
-        return -1; 
-    }else{
-        // //Transfer money 
-        switch(this->transfer_method){
-            case SGL: 
-                printf("\nDepositing $%.2f account[%d] using SGL",amount, accountID); 
-            break;
-            case PHASE_2: 
-                printf("\nDepositing $%.2f account[%d] using Two Phase Locking",amount, accountID); 
-                break; 
-            case STM: 
-                printf("\nDepositing $%.2f account[%d] using SMT",amount, accountID); 
-                break; 
-            case HTM_SGL: 
-                printf("\nDepositing $%.2f account[%d] using HMT with SGL",amount, accountID); 
-                break; 
-            case HTM_OPTIMIST: 
-                printf("\nDepositing $%.2f account[%d] using HMT with Optimistic",amount, accountID); 
-                break; 
-        }
-        return 1; 
-    }   
-}
+// int Bank::deposit(int accountID, float amount){
+//     //Account must exist within the system
+//     if(accountID>= NUM_ACCOUNTS || amount < 0){
+//         return -1; 
+//     }else{
+//         // //Transfer money 
+//         switch(this->transfer_method){
+            // case SGL: 
+            //     printf("\nDepositing $%.2f account[%d] using SGL",amount, accountID); 
+            // break;
+            // case PHASE_2: 
+            //     printf("\nDepositing $%.2f account[%d] using Two Phase Locking",amount, accountID); 
+            //     break; 
+            // case STM: 
+            //     printf("\nDepositing $%.2f account[%d] using SMT",amount, accountID); 
+            //     break; 
+            // case HTM_SGL: 
+            //     printf("\nDepositing $%.2f account[%d] using HMT with SGL",amount, accountID); 
+            //     break; 
+            // case HTM_OPTIMIST: 
+            //     printf("\nDepositing $%.2f account[%d] using HMT with Optimistic",amount, accountID); 
+            //     break; 
+//         }
+//         return 1; 
+//     }   
+// }
 
-int Bank::withdraw(int accountID, float amount){
-    //Account must exist within the system
-    if(accountID>= NUM_ACCOUNTS){
-        return -1; 
-    }else{
-        //Transfer money 
-        switch(this->transfer_method){
-            case SGL: 
-                printf("\nWithdrawing $%.2f account[%d] using SGL",amount, accountID); 
-            break;
-            case PHASE_2: 
-                printf("\nWithdrawing $%.2f account[%d] using Two Phase Locking",amount, accountID); 
-                break; 
-            case STM: 
-                printf("\nWithdrawing $%.2f account[%d] using SMT",amount, accountID); 
-                break; 
-            case HTM_SGL: 
-                printf("\nWithdrawing $%.2f account[%d] using HMT with SGL",amount, accountID); 
-                break; 
-            case HTM_OPTIMIST: 
-                printf("\nWithdrawing $%.2f account[%d] using HMT with Optimistic",amount, accountID); 
-                break;
-        }
-        return 1; 
-    }   
-}
+// int Bank::withdraw(int accountID, float amount){
+//     //Account must exist within the system
+//     if(accountID>= NUM_ACCOUNTS){
+//         return -1; 
+//     }else{
+//         //Transfer money 
+//         switch(this->transfer_method){
+//             case SGL: 
+//                 printf("\nWithdrawing $%.2f account[%d] using SGL",amount, accountID); 
+//             break;
+//             case PHASE_2: 
+//                 printf("\nWithdrawing $%.2f account[%d] using Two Phase Locking",amount, accountID); 
+//                 break; 
+//             case STM: 
+//                 printf("\nWithdrawing $%.2f account[%d] using SMT",amount, accountID); 
+//                 break; 
+//             case HTM_SGL: 
+//                 printf("\nWithdrawing $%.2f account[%d] using HMT with SGL",amount, accountID); 
+//                 break; 
+//             case HTM_OPTIMIST: 
+//                 printf("\nWithdrawing $%.2f account[%d] using HMT with Optimistic",amount, accountID); 
+//                 break;
+//         }
+//         return 1; 
+//     }   
+// }
 
 
-int Bank::transfer(int fromAccountID, int toAccountID, float amount){
-    if(fromAccountID >= NUM_ACCOUNTS || toAccountID >= NUM_ACCOUNTS || amount < 0){
-        return -1; 
-    }else{
+// int Bank::transfer(int fromAccountID, int toAccountID, float amount){
+//     if(fromAccountID >= NUM_ACCOUNTS || toAccountID >= NUM_ACCOUNTS || amount < 0){
+//         return -1; 
+//     }else{
          
-        switch(this->transfer_method){
-            case SGL: 
-                printf("\nTransfering $%.2f from account[%d] to account[%d] using SGL",amount, fromAccountID, toAccountID); 
-            break;
-            case PHASE_2: 
-                printf("\nTransfering $%.2f from account[%d] to account[%d] using Two Phase Locking",amount, fromAccountID, toAccountID); 
-                break; 
-            case STM: 
-                printf("\nTransfering $%.2f from account[%d] to account[%d] using SMT",amount, fromAccountID, toAccountID); 
-                break; 
-            case HTM_SGL: 
-                printf("\nTransfering $%.2f from account[%d] to account[%d] using HMT with SGL",amount, fromAccountID, toAccountID); 
-                break; 
-            case HTM_OPTIMIST: 
-                printf("\nTransfering $%.2f from account[%d] to account[%d] using HMT with Optimistic",amount, fromAccountID, toAccountID); 
-                break; 
-            default: 
-                printf("\nTransfering $%.2f from account[%d] to account[%d] using Single Process",amount, fromAccountID, toAccountID); 
-                // //Widthraw amount from the fromAccount
-                // accounts[fromAccount].widthdraw(amount); 
-                // //Add amount from the fromAccount
-                // accounts[fromAccount].addFunds(amount);
-                return 1;  
-                break; 
-        }
-        return 1; 
-    }   
-}
+//         switch(this->transfer_method){
+//             case SGL: 
+//                 printf("\nTransfering $%.2f from account[%d] to account[%d] using SGL",amount, fromAccountID, toAccountID); 
+//             break;
+//             case PHASE_2: 
+//                 printf("\nTransfering $%.2f from account[%d] to account[%d] using Two Phase Locking",amount, fromAccountID, toAccountID); 
+//                 break; 
+//             case STM: 
+//                 printf("\nTransfering $%.2f from account[%d] to account[%d] using SMT",amount, fromAccountID, toAccountID); 
+//                 break; 
+//             case HTM_SGL: 
+//                 printf("\nTransfering $%.2f from account[%d] to account[%d] using HMT with SGL",amount, fromAccountID, toAccountID); 
+//                 break; 
+//             case HTM_OPTIMIST: 
+//                 printf("\nTransfering $%.2f from account[%d] to account[%d] using HMT with Optimistic",amount, fromAccountID, toAccountID); 
+//                 break; 
+//             default: 
+//                 printf("\nTransfering $%.2f from account[%d] to account[%d] using Single Process",amount, fromAccountID, toAccountID); 
+//                 // //Widthraw amount from the fromAccount
+//                 // accounts[fromAccount].widthdraw(amount); 
+//                 // //Add amount from the fromAccount
+//                 // accounts[fromAccount].addFunds(amount);
+//                 return 1;  
+//                 break; 
+//         }
+//         return 1; 
+//     }   
+// }
 
 
 

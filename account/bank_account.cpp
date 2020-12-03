@@ -78,7 +78,7 @@ int Account::widthdraw(float amount){
     
 }
 
-int Account::addFunds(float amount){
+int Account::deposit(float amount){
     //Attempting to widthraw more than available
     if(amount < 0){
         return -1; 

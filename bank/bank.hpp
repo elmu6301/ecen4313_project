@@ -40,9 +40,9 @@ class Bank{
     void initAccounts(std::vector <float> &startingBalances); 
 
     void printBank(); 
-    int deposit(int accountID, float amount); 
-    int withdraw(int accountID, float amount); 
-    int transfer(int fromAccountID, int toAccountID, float amount); 
+    // int deposit(int accountID, float amount); 
+    // int withdraw(int accountID, float amount); 
+    // int transfer(int fromAccountID, int toAccountID, float amount); 
 
 }; 
 

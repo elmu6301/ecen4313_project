@@ -12,10 +12,11 @@ Lab 2:
 
 class Account{
     private: 
-    float balance; 
+    float balance;     
 
     public: 
     int id; 
+    
     //Constructor
     Account();
     Account(int id);
@@ -29,7 +30,7 @@ class Account{
     int getId(); 
     int updateBalance(float amount); 
     int widthdraw(float amount); 
-    int addFunds(float amount); 
+    int deposit(float amount); 
 
     //Print
     void printAccount(); 

@@ -7,8 +7,8 @@
 all: main #accountUT
 
 #Executable for main
-main: main.o bank_account.o bank.o bank_tester.o array_splitter.o
-	g++ main.o bank_account.o bank.o bank_tester.o array_splitter.o -pthread -g -o main
+main: main.o bank_account.o bank.o bank_tester.o 
+	g++ main.o bank_account.o bank.o bank_tester.o -pthread -g -o main
 	# g++  -pthread -g -o mysort
 
 #Object Files
@@ -24,8 +24,6 @@ bank.o: bank/bank.cpp bank/bank.hpp
 bank_tester.o: tester/bank_tester.cpp tester/bank_tester.hpp
 	g++ -c tester/bank_tester.cpp
 
-array_splitter.o: tester/array_splitter.cpp tester/array_splitter.hpp
-	g++ -c tester/array_splitter.cpp
 
 #Clean
 clean:

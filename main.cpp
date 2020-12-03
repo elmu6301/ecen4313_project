@@ -177,7 +177,7 @@ int main(int argc, char* argv[]){
     int txnAlg; 
     if(alg.compare("sgl")== 0){
         txnAlg = SGL; 
-    }else if(alg.compare("2p1")==0){
+    }else if(alg.compare("2pl")==0){
         txnAlg = PHASE_2; 
     }else if(alg.compare("stm")==0){
         txnAlg = STM; 
@@ -220,10 +220,10 @@ int main(int argc, char* argv[]){
     //read in data from the initialization file and store it to initData
     readInitData(initFile, initData); 
 
-    for(int i = 0; i < initData.size();  i++){
-        printf("\nInitData[%d] = %.2f", i, initData[i]); 
-    }
-    printf("\n"); 
+    // for(int i = 0; i < initData.size();  i++){
+    //     printf("\nInitData[%d] = %.2f", i, initData[i]); 
+    // }
+    // printf("\n"); 
     int num_accounts = initData.size(); 
 
     cout<<"Creating Bank with "<<num_accounts<<" accounts and initialized by '"<<initFile<<"'.txt"<<endl; 
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]){
     //create bank and initalize it with initData
     Bank myBank = Bank(num_accounts, txnAlg); 
     myBank.initAccounts(initData); 
-    myBank.printBank(); 
+    // myBank.printBank(); 
 
 
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]){
         cout<<"An invalid thread count was entered. The number of threads cannot exceed the amount of data.\nSetting the number of threads to match the amount of data."<<endl; 
         num_threads = data_size; 
     }
-    bank_tester(num_threads, myBank,txnData); 
+    bank_tester(num_threads,txnAlg, initData, txnData); 
     
     // cout<<"Applying transactions from '"<<initFile<<"'.txt on "<<num_threads<<" threads and '"<<alg<<"' transaction algorithm"<<endl; 
 
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]){
    
 
     // fileOut.close();    
-    myBank.printBank(); 
+    // myBank.printBank(); 
     
 }
 
