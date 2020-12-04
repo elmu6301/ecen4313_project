@@ -13,7 +13,6 @@ using namespace std;
 #include <string>
 #include <atomic>
 #include <vector>
-#include "../account/bank_account.hpp"
 
 
 enum TXN_IMP{
@@ -29,21 +28,27 @@ struct Account_t{
     float bal; 
 }; 
 
-struct Bank_t{
-    int NUM_ACCOUNTS_b; 
-    Account_t * accounts_b;
-    float total_b; 
-    int TXN_METHOD_b; 
-    pthread_mutex_t sg_lock; 
-    pthread_mutex_t * account_locks; 
+
+class Bank{
+    private:
+        int NUM_ACCOUNTS; 
+        Account_t * accounts;
+        float total; 
+        int TXN_METHOD; 
+        pthread_mutex_t sg_lock; 
+        pthread_mutex_t * account_locks; 
+    
+        void __attribute__((transaction_safe))account_deposit(int id, float amt); 
+        int __attribute__((transaction_safe))account_withdraw(int id, float amt); 
+
+    public:
+        Bank(int txn_method, std::vector <float> &startingBalances); 
+        
+        void transfer(int fromId, int toId, float amt); 
+        void deposit(int id, float amt); 
+        void withdraw(int id, float amt); 
+        float computeTotal(); 
+        void printBank(); 
 }; 
-
-
-void initBank(int txn_method, std::vector <float> &startingBalances); 
-void __attribute__((transaction_safe))account_deposit(int id, float amt); 
-int __attribute__((transaction_safe))account_withdraw(int id, float amt); 
-void transfer_b(int fromId, int toId, float amt); 
-void printBank_b(); 
-void delBank(); 
 
 #endif

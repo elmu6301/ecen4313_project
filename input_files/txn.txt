@@ -1,7 +1,10 @@
-deposit,0,-1,300
-deposit,1,-1,200.55
-deposit,2,1,100.50
-withdraw,0,-1,300
-withdraw,1,-1,200.55
-withdraw,2,1,100.50
 transfer,1,0,10.0
+transfer,2,1,10.0
+
+stop
+deposit,0,-1,100
+deposit,1,-1,99.75
+deposit,2,1,99.25
+withdraw,0,-1, 100
+withdraw,1,-1,99.75
+withdraw,2,-1,99.25

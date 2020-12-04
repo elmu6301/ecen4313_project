@@ -7,16 +7,13 @@
 all: main #accountUT
 
 #Executable for main
-main: main.o bank_account.o bank.o bank_tester.o 
-	g++ main.o bank_account.o bank.o bank_tester.o -pthread -fgnu-tm -g -o main
+main: main.o bank.o bank_tester.o 
+	g++ main.o  bank.o bank_tester.o -pthread -fgnu-tm -g -o main
 	# g++  -pthread -g -o mysort
 
 #Object Files
 main.o: main.cpp 
 	g++ -c main.cpp
-
-bank_account.o: account/bank_account.cpp account/bank_account.hpp
-	g++ -c account/bank_account.cpp -fgnu-tm
 
 bank.o: bank/bank.cpp bank/bank.hpp
 	g++ -c bank/bank.cpp -fgnu-tm

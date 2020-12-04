@@ -34,6 +34,6 @@ struct bank_thread_args {
 
 
 
-int bank_tester(int num_threads, int txn_method, std::vector <float> &startingBalances, std::vector <TXN_t> &data ); 
+int bank_tester(int num_threads,  Bank &myBank, std::vector <TXN_t> &data ); 
 
 #endif

@@ -23,41 +23,34 @@ using namespace std;
 //Developer includes
 #include "bank.hpp"
 
-/*************************************************
-	Global Variables
-**************************************************/
-//Banking variables
-// int NUM_ACCOUNTS_b; 
-// Account_t * accounts_b;
-// float total_b; 
-Bank_t bank_b; 
-//Concurrency Variables
 
+// /*************************************************
+// 	CONSTRUCTOR and DESTRUCTOR
+// **************************************************/
+Bank::Bank(int txn_method, std::vector <float> &startingBalances){
+    TXN_METHOD = txn_method; 
+    NUM_ACCOUNTS = startingBalances.size(); 
+    total = 0; 
 
-/*************************************************
-	FUNCTIONS
-**************************************************/
-
-
-void initBank(int txn_method, std::vector <float> &startingBalances){
-    bank_b.NUM_ACCOUNTS_b = startingBalances.size(); 
-    bank_b.TXN_METHOD_b = txn_method; 
 
     //Create accounts and assign id's and balances
-    bank_b.accounts_b = new Account_t[bank_b.NUM_ACCOUNTS_b]; 
-    for(int i = 0; i < bank_b.NUM_ACCOUNTS_b; i++){
-        bank_b.accounts_b[i].id = i; 
-        bank_b.accounts_b[i].bal = startingBalances[i]; 
-        bank_b.total_b += startingBalances[i]; 
+    accounts = new Account_t[NUM_ACCOUNTS]; 
+    for(int i = 0; i < NUM_ACCOUNTS; i++){
+        accounts[i].id = i; 
+        accounts[i].bal = startingBalances[i]; 
+        total += startingBalances[i]; 
     }
      
-
-    switch(bank_b.TXN_METHOD_b){
+    sg_lock = PTHREAD_MUTEX_INITIALIZER; 
+    switch(this->TXN_METHOD){
 		case SGL: 
-			bank_b.sg_lock = PTHREAD_MUTEX_INITIALIZER; 
+			// sg_lock = PTHREAD_MUTEX_INITIALIZER; 
 			break;
 		case PHASE_2: 
-			
+			account_locks = new pthread_mutex_t[NUM_ACCOUNTS]; 
+			for(int i = 0; i < NUM_ACCOUNTS; i++){
+				account_locks[i] = PTHREAD_MUTEX_INITIALIZER; 
+			}
 			break; 
 		case STM: 
 			
@@ -72,53 +65,49 @@ void initBank(int txn_method, std::vector <float> &startingBalances){
 			
 			break;
     }
-
 }
 
-void printBank_b(){
-    printf("\n-------------- Bank -------------"); 
-    for(int i = 0; i < bank_b.NUM_ACCOUNTS_b; i++){
-        printf("\n\tAccount[%d]: $%.2f", bank_b.accounts_b[i].id, bank_b.accounts_b[i].bal); 
-    }
-    printf("\n\n\tBank Total: $%.2f", bank_b.total_b); 
-    printf("\n"); 
+// /*************************************************
+// 	BANK FUNCTIONS
+// **************************************************/
+
+void __attribute__((transaction_safe)) Bank::account_deposit(int id, float amt){
+    this->accounts[id].bal += amt; 
+    this->total +=amt;
 }
 
-void __attribute__((transaction_safe)) account_deposit(int id, float amt){
-    bank_b.accounts_b[id].bal += amt; 
-    bank_b.total_b +=amt;
-}
-
-int __attribute__((transaction_safe)) account_withdraw(int id, float amt){
-    if(bank_b.accounts_b[id].bal < amt){
+int __attribute__((transaction_safe)) Bank::account_withdraw(int id, float amt){
+    if(this->accounts[id].bal < amt){
         return -1;
     }
-    bank_b.accounts_b[id].bal -= amt; 
-    bank_b.total_b -=amt; 
+    this->accounts[id].bal -= amt; 
+    this->total -=amt; 
     return 1; 
 }
 
-void transfer_b(int fromId, int toId, float amt){
-    if(amt < 0 || toId < 0 || toId >= bank_b.NUM_ACCOUNTS_b || fromId < 0 || fromId >= bank_b.NUM_ACCOUNTS_b){
-        return; 
-    }
-    __transaction_atomic{
-        if(account_withdraw(fromId,amt)==-1){
+void Bank::deposit(int id, float amt){
+    if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
             return; 
-        } 
-        account_deposit(toId,amt); 
     }
-}
 
-void delBank(){
-     switch(bank_b.TXN_METHOD_b){
+    switch(TXN_METHOD){
 		case SGL: 
+            pthread_mutex_lock(&sg_lock);
+            this->accounts[id].bal += amt; 
+            this->total +=amt;    
+            pthread_mutex_unlock(&sg_lock);
 			break;
 		case PHASE_2: 
-			
+			pthread_mutex_lock(&account_locks[id]);
+            this->accounts[id].bal += amt; 
+            this->total +=amt;
+            pthread_mutex_unlock(&account_locks[id]);
 			break; 
 		case STM: 
-			
+			__transaction_atomic{
+            this->accounts[id].bal += amt; 
+            this->total +=amt;
+            }
 			break; 
 		case HTM_SGL: 
 			
@@ -130,4 +119,133 @@ void delBank(){
 			
 			break;
     }
+    
 }
+
+void Bank::withdraw(int id, float amt){
+    if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
+            return; 
+    }
+    switch(TXN_METHOD){
+		case SGL: 
+            pthread_mutex_lock(&sg_lock);
+            if(this->accounts[id].bal >= amt){
+                this->accounts[id].bal -= amt; 
+                this->total -=amt;
+            }
+                
+            pthread_mutex_unlock(&sg_lock);
+			break;
+		case PHASE_2: 
+			pthread_mutex_lock(&account_locks[id]);
+            if(this->accounts[id].bal >= amt){
+                this->accounts[id].bal -= amt; 
+                this->total -=amt;
+            }
+            pthread_mutex_unlock(&account_locks[id]);
+			break; 
+		case STM: 
+			__transaction_atomic{
+                if(this->accounts[id].bal >= amt){
+                    this->accounts[id].bal -= amt; 
+                    this->total -=amt;
+                }
+            }
+			break; 
+		case HTM_SGL: 
+			
+			break;
+		case HTM_OPTIMIST: 
+			
+			break;
+		default: 
+			
+			break;
+    }
+    
+}
+
+
+void Bank::transfer(int fromId, int toId, float amt){
+    //Check for invalid amounts and account ids
+    if(amt < 0 || toId < 0 || toId >= NUM_ACCOUNTS || fromId < 0 || fromId >= NUM_ACCOUNTS){
+        return; 
+    }
+
+    switch(TXN_METHOD){
+		case SGL: 
+            pthread_mutex_lock(&sg_lock);
+            if(account_withdraw(fromId,amt)==1){
+                account_deposit(toId,amt); 
+            } 
+                
+            pthread_mutex_unlock(&sg_lock);
+			break;
+		case PHASE_2: 
+			pthread_mutex_lock(&account_locks[fromId]);
+            pthread_mutex_lock(&account_locks[toId]);
+            if(account_withdraw(fromId,amt)==1){
+                account_deposit(toId,amt); 
+            } 
+            pthread_mutex_unlock(&account_locks[fromId]);
+            pthread_mutex_unlock(&account_locks[toId]);
+			break; 
+		case STM: 
+			__transaction_atomic{
+                // if(this->account_withdraw(fromId,amt)==-1){
+                //     return; 
+                // } 
+                // this->account_deposit(toId,amt); 
+                if(account_withdraw(fromId,amt)==1){
+                    account_deposit(toId,amt); 
+                } 
+            }
+			break; 
+		case HTM_SGL: 
+			
+			break;
+		case HTM_OPTIMIST: 
+			
+			break;
+		default: 
+			
+			break;
+    }
+    
+}
+
+
+float Bank::computeTotal(){
+    float comp_total = 0; 
+    for(int i = 0; i < NUM_ACCOUNTS; i++){
+        comp_total += accounts[i].bal; 
+    }
+    return comp_total; 
+}
+
+void Bank::printBank(){
+
+    pthread_mutex_lock(&sg_lock);
+           
+    printf("\n-------------- Bank -------------"); 
+    for(int i = 0; i < NUM_ACCOUNTS; i++){
+        printf("\n\tAccount[%d]: $%.2f", accounts[i].id, accounts[i].bal); 
+    }
+    printf("\n\n\tBank Total: $%.2f", total); 
+    printf("\n"); 
+           
+    pthread_mutex_unlock(&sg_lock);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

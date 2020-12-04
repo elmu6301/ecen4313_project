@@ -22,24 +22,15 @@ Lab 1:
 
 //Developer includes
 #include "bank_tester.hpp"
-#include "../account/bank_account.hpp"
 #include "../bank/bank.hpp"
 
 
 /*************************************************
 	GLOBAL VARIABLES
 **************************************************/
+Bank * bank; 
+
 pthread_t *threads;
-pthread_mutex_t sgl_lock; 
-pthread_mutex_t * p2_locks; 
-
-//For bank
-int TXN_METHOD; 
-int NUM_ACCOUNTS; 
-float total; 
-Account * bank; 
-// 
-
 size_t NUM_THREADS;
 pthread_barrier_t p_bar;
 
@@ -53,7 +44,6 @@ struct timespec tend;
 //Helper functions
 std::vector<std::vector<TXN_t>> split_vector_array(std::vector<TXN_t>array,int num_parts); 
 void printTXNS(std::vector <TXN_t> &txnData); 
-void printBank(); 
 //Bank functions
 int deposit(int accountID, float amount); 
 void withdraw(int accountID, float amount); 
@@ -64,47 +54,10 @@ void transfer(int fromAccountID, int toAccountID, float amount);
 /*
 	Allocates all required data. 
 */
-void global_init(int txn_method, std::vector <float> &startingBalances)
+void global_init()
 {
-	//Setup accounts
-	NUM_ACCOUNTS = startingBalances.size(); 
-	TXN_METHOD = txn_method; 
-	bank = new Account[NUM_ACCOUNTS]; 
-	for(int i = 0; i < NUM_ACCOUNTS; i++){
-        // accounts[i].id = i;
-		bank[i] = Account(i,startingBalances[i]); 
-		total += startingBalances[i]; 
-    }
-	printBank(); 
-	//pthread 
 	threads = (pthread_t *)malloc(NUM_THREADS * sizeof(pthread_t));
 	pthread_barrier_init(&p_bar, NULL, NUM_THREADS);
-
-	switch(TXN_METHOD){
-		case SGL: 
-			sgl_lock = PTHREAD_MUTEX_INITIALIZER;
-			printf("Running bank with SGL"); 
-			break;
-		case PHASE_2: 
-			printf("Running bank with Two Phase Locking"); 
-			p2_locks = new pthread_mutex_t[NUM_ACCOUNTS]; 
-			for(int i = 0; i < NUM_ACCOUNTS; i++){
-				p2_locks[i] = PTHREAD_MUTEX_INITIALIZER; 
-			}
-			break; 
-		case STM: 
-			printf("Running bank with STM"); 
-			break; 
-		case HTM_SGL: 
-			printf("Running bank with HTM and SGL"); 
-			break;
-		case HTM_OPTIMIST: 
-			printf("Running bank with HTM and Optimist"); 
-			break;
-		default: 
-			printf("Running bank with DEFAULT"); 
-			break;
-        }
 }
 
 /*
@@ -113,30 +66,8 @@ void global_init(int txn_method, std::vector <float> &startingBalances)
 void global_cleanup()
 {
 	free(threads);
-	delete bank; 
+	// delete bank; 
 	pthread_barrier_destroy(&p_bar);
-	switch(TXN_METHOD){
-		case SGL: 
-			printf("\nCleaning bank with SGL"); 
-			break;
-		case PHASE_2: 
-			printf("\nCleaning bank with Two Phase Locking"); 
-			delete p2_locks;
-			break; 
-		case STM: 
-			printf("\nCleaning bank with STM"); 
-			break; 
-		case HTM_SGL: 
-			printf("\nCleaning bank with HTM and SGL"); 
-			break;
-		case HTM_OPTIMIST: 
-			printf("\nCleaning bank with HTM and Optimist"); 
-			break;
-		default: 
-			printf("\nCleaning bank with DEFAULT"); 
-			break;
-    }
-
 }
 
 /*************************************************
@@ -189,146 +120,7 @@ void printTXNS(std::vector <TXN_t> &txnData){
     }
 }
 
-void printBank(){
-	printf("\n-------------- Bank -------------"); 
-    for(int i = 0; i < NUM_ACCOUNTS; i++){
-        printf("\n\tAccount[%d]: $%.2f", bank[i].getId(),bank[i].getBalance()); 
-    }
-    printf("\n\n\tBank Total: $%.2f", total); 
-    printf("\n"); 
-}
 
-/*************************************************
-	BANK FUNCTIONS
-**************************************************/
-int deposit(int accountID, float amount){
-	// printf("\nAccount id = %d amt = $%.2f", accountID, amount); 
-	switch(TXN_METHOD){
-		case SGL: 
-			printf("Depositing $%.2f to account[%d] using SGL\n",amount, accountID); 
-			pthread_mutex_lock(&sgl_lock);
-			
-			if(accountID < NUM_ACCOUNTS){
-				bank[accountID].deposit(amount); 
-				total += amount; 
-			}
-			printf(" : Account[%d] = $%.2f\n",accountID, bank[accountID].getBalance()); 
-			pthread_mutex_unlock(&sgl_lock);
-			
-			break;
-		case PHASE_2: 
-			printf("Depositing $%.2f to account[%d] using Two Phase Locking\n",amount, accountID); 
-			//Phase 1: aquire all needed locks
-			pthread_mutex_lock(&p2_locks[accountID]);
-
-			//Make changes
-			bank[accountID].deposit(amount); 
-			total += amount; 
-
-			//Phase 2: release all needed locks
-			pthread_mutex_unlock(&p2_locks[accountID]);
-
-			break; 
-		case STM: 
-			printf("Depositing $%.2f to account[%d] using SMT\n",amount, accountID); 
-			break; 
-		case HTM_SGL: 
-			printf("Depositing $%.2f to account[%d] using HMT with SGL\n",amount, accountID); 
-			break; 
-		case HTM_OPTIMIST: 
-			printf("Depositing $%.2f to account[%d] using HMT with Optimistic\n",amount, accountID); 
-			break; 
-	}
-	return 1; 
-}
-
-void __attribute__((transaction_safe)) test(int &val){
-	 val+=1; 
-}
-
-void withdraw(int accountID, float amount){
-        //Transfer money 
-	int temp1 = 0; 
-
-	switch(TXN_METHOD){
-		case SGL: 
-			printf("Withdrawing $%.2f from account[%d] using SGL",amount, accountID); 
-			pthread_mutex_lock(&sgl_lock);
-			if(accountID < NUM_ACCOUNTS){
-				bank[accountID].widthdraw(amount); 
-				total -= amount; 
-				// bank[accountID].printAccount();
-				printf(" : Account[%d] = $%.2f\n",accountID, bank[accountID].getBalance()); 
-			}
-			pthread_mutex_unlock(&sgl_lock);
-			break;
-		case PHASE_2: 
-			printf("Withdrawing $%.2f from account[%d] using Two Phase Locking\n",amount, accountID); 
-			//Phase 1: aquire all needed locks
-			pthread_mutex_lock(&p2_locks[accountID]);
-
-			//Make changes
-			bank[accountID].widthdraw(amount); 
-			total -= amount; 
-
-			//Phase 2: release all needed locks
-			pthread_mutex_unlock(&p2_locks[accountID]);
-			break; 
-		case STM: 
-			printf("Withdrawing $%.2f from account[%d] using SMT\n",amount, accountID); 
-			
-			__transaction_atomic{
-				test(temp1);  
-			}
-			break; 
-		case HTM_SGL: 
-			printf("Withdrawing $%.2f from account[%d] using HMT with SGL\n",amount, accountID); 
-			break; 
-		case HTM_OPTIMIST: 
-			printf("Withdrawing $%.2f from account[%d] using HMT with Optimistic\n",amount, accountID); 
-			break;
-	}
-	printf("temp = %d",temp1); 
-}
-
-
-
-void transfer(int fromAccountID, int toAccountID, float amount){
-        //Transfer money 
-	switch(TXN_METHOD){
-		case SGL: 
-			printf("Transfering $%.2f from account[%d] to account[%d] using SGL\n",amount, fromAccountID, toAccountID); 
-			pthread_mutex_lock(&sgl_lock);
-			bank[fromAccountID].widthdraw(amount);  
-			bank[toAccountID].deposit(amount); 
-			pthread_mutex_unlock(&sgl_lock);
-			break;
-		case PHASE_2: 
-			printf("Transfering $%.2f from account[%d] to account[%d] using Two Phase Locking\n",amount, fromAccountID, toAccountID); 
-			//Phase 1: aquire all needed locks
-			pthread_mutex_lock(&p2_locks[fromAccountID]);
-			pthread_mutex_lock(&p2_locks[toAccountID]);
-			//Make changes
-			bank[fromAccountID].widthdraw(amount);  
-			bank[toAccountID].deposit(amount); 
-
-			//Phase 2: release all needed locks
-			pthread_mutex_unlock(&p2_locks[toAccountID]);
-			pthread_mutex_unlock(&p2_locks[fromAccountID]);
-			
-			
-			break; 
-		case STM: 
-			printf("Transfering $%.2f from account[%d] to account[%d] using SMT\n",amount, fromAccountID, toAccountID); 
-			break; 
-		case HTM_SGL: 
-			printf("Transfering $%.2f from account[%d] to account[%d] using HMT with SGL\n",amount, fromAccountID, toAccountID); 
-			break; 
-		case HTM_OPTIMIST: 
-			printf("Transfering $%.2f from account[%d] to account[%d] using HMT with Optimistic\n",amount, fromAccountID, toAccountID); 
-			break; 
-	}
-}
 
 
 /*************************************************
@@ -349,21 +141,21 @@ void *bank_thread(void *args)
 	}
 	pthread_barrier_wait(&p_bar);
 
-	
+	// (*bank).printBank_b(); 
 	//Process each transaction
 	for(int i = 0; i < array.size(); i++){
-		printf("\nThread[%zu]: ",tid); 
+		// printf("\nThread[%zu]: ",tid); 
 		//Call the appropriate function based off of the action field
 		if(array[i].action.compare("deposit")== 0){
-			// printf("\nDepositing %.2f in account[%d]", array[i].amt, array[i].toID); 
-			deposit(array[i].toID, array[i].amt); 
+			printf("\nThd[%zu] D: %.2f in account[%d]",tid, array[i].amt, array[i].toID); 
+			(*bank).deposit(array[i].toID, array[i].amt); 
 		}
 		else if(array[i].action.compare("withdraw")==0){
-			// printf("\nDepositing %.2f in account[%d]", array[i].amt, array[i].toID);
-			withdraw(array[i].toID, array[i].amt);  
+			printf("\nThd[%zu] W: %.2f in account[%d]", tid,array[i].amt, array[i].toID);
+			(*bank).withdraw(array[i].toID, array[i].amt);  
 		}else if(array[i].action.compare("transfer")==0){
-			// printf("\nTransfering %.2f from account[%d] to account[%d]", array[i].amt, array[i].fromID,array[i].toID); 
-			transfer(array[i].fromID, array[i].toID, array[i].amt); 
+			printf("\nThd[%zu] T: %.2f from account[%d] to account[%d]",tid, array[i].amt, array[i].fromID,array[i].toID); 
+			(*bank).transfer(array[i].fromID, array[i].toID, array[i].amt); 
 		}
 	}
 
@@ -380,8 +172,9 @@ void *bank_thread(void *args)
 	Runs the parallelized bucketsort. Creates and joins all threads and returns
 	the data to main. 
 */
-int bank_tester(int num_threads, int txn_method, std::vector <float> &startingBalances, std::vector <TXN_t> &data)
+int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 {
+	bank = &myBank; 
 
 	NUM_THREADS = num_threads;
 	if (NUM_THREADS > 150) 
@@ -392,11 +185,11 @@ int bank_tester(int num_threads, int txn_method, std::vector <float> &startingBa
 	// NUM_THREADS = 1; 
 
 	//Global init
-	global_init(txn_method,startingBalances);
+	global_init();
 
 	//Split array into NUM_THREADS parts
 	std::vector<std::vector<TXN_t>> split_arrays = split_vector_array(data, NUM_THREADS);
-
+	(*bank).printBank();
 	
 	struct bank_thread_args args[NUM_THREADS];
 	
@@ -436,9 +229,7 @@ int bank_tester(int num_threads, int txn_method, std::vector <float> &startingBa
 		// printf("joined thread %zu\n",i+1);
 	}
 
-
-	printBank();
-
+	(*bank).printBank(); 
 	global_cleanup();
 	
 	unsigned long long elapsed_ns;
