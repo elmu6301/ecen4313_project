@@ -29,8 +29,8 @@ class Account{
     //Setters
     int getId(); 
     int updateBalance(float amount); 
-    int widthdraw(float amount); 
-    int deposit(float amount); 
+    int __attribute__((transaction_safe))widthdraw(float amount); 
+    int __attribute__((transaction_safe))deposit(float amount); 
 
     //Print
     void printAccount(); 

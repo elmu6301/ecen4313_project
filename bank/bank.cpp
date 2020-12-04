@@ -39,12 +39,12 @@ using namespace std;
 
 Bank::Bank(int num_acnts){
     //Update imporant fields
-    this->NUM_ACCOUNTS = num_acnts; 
+    this->NUM_ACCOUNTS1 = num_acnts; 
     this->total = 0; 
     this->transfer_method = SGL; 
     //Set up accounts 
     this->accounts = new Account[num_acnts]; 
-    for(int i = 1; i < NUM_ACCOUNTS; i++){
+    for(int i = 1; i < NUM_ACCOUNTS1; i++){
         accounts[i].id = i;
     }
     
@@ -53,20 +53,20 @@ Bank::Bank(int num_acnts){
 
 Bank::Bank(int num_acnts, int transfer_method){
     //Update imporant fields
-    this->NUM_ACCOUNTS = num_acnts; 
+    this->NUM_ACCOUNTS1 = num_acnts; 
     this->total = 0; 
     this->transfer_method = transfer_method; 
     //Set up accounts 
     this->accounts = new Account[num_acnts]; 
-    for(int i = 1; i < NUM_ACCOUNTS; i++){
+    for(int i = 1; i < NUM_ACCOUNTS1; i++){
         accounts[i].id = i;
     }
 }
 
 void Bank::initAccounts(std::vector <float> &startingBalances){
     int size = startingBalances.size();
-    if(size > this->NUM_ACCOUNTS){
-        size = this->NUM_ACCOUNTS; 
+    if(size > this->NUM_ACCOUNTS1){
+        size = this->NUM_ACCOUNTS1; 
     }
     for(int i = 0; i < size; i++){
         //Update balance of account i
@@ -170,7 +170,7 @@ void Bank::initAccounts(std::vector <float> &startingBalances){
 
 void Bank::printBank(){
     printf("\n-------------- Bank -------------"); 
-    for(int i = 0; i < NUM_ACCOUNTS; i++){
+    for(int i = 0; i < NUM_ACCOUNTS1; i++){
         printf("\n\tAccount[%d]: $%.2f", accounts[i].getId(), accounts[i].getBalance()); 
     }
     printf("\n\n\tBank Total: $%.2f", this->total); 

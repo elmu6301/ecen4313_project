@@ -27,7 +27,7 @@ enum counter_imp{
 
 class Bank{
     private: 
-    int NUM_ACCOUNTS; 
+    int NUM_ACCOUNTS1; 
     Account * accounts; 
     float total; 
     int transfer_method; 

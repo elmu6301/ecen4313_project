@@ -38,6 +38,7 @@ int TXN_METHOD;
 int NUM_ACCOUNTS; 
 float total; 
 Account * bank; 
+// 
 
 size_t NUM_THREADS;
 pthread_barrier_t p_bar;
@@ -241,9 +242,14 @@ int deposit(int accountID, float amount){
 	return 1; 
 }
 
+void __attribute__((transaction_safe)) test(int &val){
+	 val+=1; 
+}
 
 void withdraw(int accountID, float amount){
         //Transfer money 
+	int temp1 = 0; 
+
 	switch(TXN_METHOD){
 		case SGL: 
 			printf("Withdrawing $%.2f from account[%d] using SGL",amount, accountID); 
@@ -270,6 +276,10 @@ void withdraw(int accountID, float amount){
 			break; 
 		case STM: 
 			printf("Withdrawing $%.2f from account[%d] using SMT\n",amount, accountID); 
+			
+			__transaction_atomic{
+				test(temp1);  
+			}
 			break; 
 		case HTM_SGL: 
 			printf("Withdrawing $%.2f from account[%d] using HMT with SGL\n",amount, accountID); 
@@ -278,7 +288,9 @@ void withdraw(int accountID, float amount){
 			printf("Withdrawing $%.2f from account[%d] using HMT with Optimistic\n",amount, accountID); 
 			break;
 	}
+	printf("temp = %d",temp1); 
 }
+
 
 
 void transfer(int fromAccountID, int toAccountID, float amount){

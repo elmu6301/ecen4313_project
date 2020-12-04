@@ -67,7 +67,7 @@ int Account::updateBalance(float amount){
     
 }
 
-int Account::widthdraw(float amount){
+int __attribute__((transaction_safe)) Account::widthdraw(float amount){
     //Attempting to widthraw more than available
     if(amount > this->balance){
         return -1; 
@@ -76,9 +76,9 @@ int Account::widthdraw(float amount){
         return 1; 
     }
     
-}
+} 
 
-int Account::deposit(float amount){
+int __attribute__((transaction_safe)) Account::deposit(float amount){
     //Attempting to widthraw more than available
     if(amount < 0){
         return -1; 
