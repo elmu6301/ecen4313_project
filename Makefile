@@ -19,7 +19,7 @@ bank_account.o: account/bank_account.cpp account/bank_account.hpp
 	g++ -c account/bank_account.cpp -fgnu-tm
 
 bank.o: bank/bank.cpp bank/bank.hpp
-	g++ -c bank/bank.cpp
+	g++ -c bank/bank.cpp -fgnu-tm
 
 bank_tester.o: tester/bank_tester.cpp tester/bank_tester.hpp
 	g++ -c tester/bank_tester.cpp -fgnu-tm

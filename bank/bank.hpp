@@ -16,7 +16,7 @@ using namespace std;
 #include "../account/bank_account.hpp"
 
 
-enum counter_imp{
+enum TXN_IMP{
     SGL, 
     PHASE_2,
     STM, 
@@ -24,26 +24,26 @@ enum counter_imp{
     HTM_OPTIMIST
 }; 
 
-
-class Bank{
-    private: 
-    int NUM_ACCOUNTS1; 
-    Account * accounts; 
-    float total; 
-    int transfer_method; 
-
-    public: 
-    //Constructor
-    Bank(int num_acnts);
-    Bank(int num_acnts, int transfer_method);
-    
-    void initAccounts(std::vector <float> &startingBalances); 
-
-    void printBank(); 
-    // int deposit(int accountID, float amount); 
-    // int withdraw(int accountID, float amount); 
-    // int transfer(int fromAccountID, int toAccountID, float amount); 
-
+struct Account_t{
+    int id; 
+    float bal; 
 }; 
+
+struct Bank_t{
+    int NUM_ACCOUNTS_b; 
+    Account_t * accounts_b;
+    float total_b; 
+    int TXN_METHOD_b; 
+    pthread_mutex_t sg_lock; 
+    pthread_mutex_t * account_locks; 
+}; 
+
+
+void initBank(int txn_method, std::vector <float> &startingBalances); 
+void __attribute__((transaction_safe))account_deposit(int id, float amt); 
+int __attribute__((transaction_safe))account_withdraw(int id, float amt); 
+void transfer_b(int fromId, int toId, float amt); 
+void printBank_b(); 
+void delBank(); 
 
 #endif
