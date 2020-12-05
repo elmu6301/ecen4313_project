@@ -30,8 +30,6 @@ struct Account_t{
     float bal; 
 }; 
 
-
-
 class Bank{
     private:
         int NUM_ACCOUNTS; 

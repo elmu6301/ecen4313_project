@@ -24,9 +24,6 @@ using namespace std;
 /*************************************************
 	FUNCTIONS
 **************************************************/
-void test_ticket_lock(){
-    printf("\nticket_lock\n"); 
-}
 
 /*************************************************
 	CLASS FUNCTIONS
@@ -35,6 +32,12 @@ void test_ticket_lock(){
     Constructor
 */
 TicketLock::TicketLock(){
+    next_num.store(0); 
+    now_serving.store(0); 
+    lock_held.store(false); 
+}
+
+TicketLock::~TicketLock(){
     next_num.store(0); 
     now_serving.store(0); 
     lock_held.store(false); 

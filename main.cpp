@@ -117,6 +117,9 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
 //main function
 int main(int argc, char* argv[]){ 
 
+    TicketLock * lock; 
+    lock = new TicketLock[1]; 
+
     //variable for parsing the command line
     string initFile; //stores the name of the file to initialize the bank system from
     string txnFile; //stores the name of the file to execute transactions from

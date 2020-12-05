@@ -18,11 +18,11 @@ class TicketLock{
 
     public: 
     TicketLock(); 
+    ~TicketLock(); 
     void lock(); 
     void unlock();  
     bool lockHeld(); 
 
 }; 
- void test_ticket_lock(); 
 
 #endif
