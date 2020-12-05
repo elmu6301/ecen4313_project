@@ -14,6 +14,8 @@ using namespace std;
 #include <atomic>
 #include <vector>
 
+//Developer includes
+#include "../lock/ticket_lock.hpp"
 
 enum TXN_IMP{
     SGL, 
@@ -36,15 +38,15 @@ class Bank{
         Account_t * accounts;
         float total; 
         int TXN_METHOD; 
-        pthread_mutex_t sg_lock; 
-        pthread_mutex_t * account_locks; 
+        TicketLock sg_lock; 
+        TicketLock * account_locks; 
     
         void __attribute__((transaction_safe))account_deposit(int id, float amt); 
         int __attribute__((transaction_safe))account_withdraw(int id, float amt); 
 
     public:
         Bank(int txn_method, std::vector <float> &startingBalances); 
-        
+        ~Bank(); 
         void transfer(int fromId, int toId, float amt); 
         void deposit(int id, float amt); 
         void withdraw(int id, float amt); 

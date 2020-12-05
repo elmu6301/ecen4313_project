@@ -15,8 +15,6 @@ using namespace std;
 #include <vector>
 #include <list>
 
-// #include "array_splitter.hpp"
-
 #include "../bank/bank.hpp"
 
 struct TXN_t{
