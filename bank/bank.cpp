@@ -17,12 +17,14 @@ Lab 2:
 #include <atomic>
 #include <vector>
 #include <pthread.h>
+#include <immintrin.h>
 
 using namespace std;
 
 //Developer includes
 #include "bank.hpp"
 
+#define NUM_RETRIES 1
 
 // /*************************************************
 // 	CONSTRUCTOR and DESTRUCTOR
@@ -56,7 +58,6 @@ Bank::Bank(int txn_method, std::vector <float> &startingBalances){
 			
 			break; 
 		case HTM_SGL: 
-			
 			break;
 		case HTM_OPTIMIST: 
 			
@@ -111,6 +112,7 @@ void Bank::deposit(int id, float amt){
 			break; 
 		case HTM_SGL: 
 			
+
 			break;
 		case HTM_OPTIMIST: 
 			
@@ -171,7 +173,7 @@ void Bank::transfer(int fromId, int toId, float amt){
     if(amt < 0 || toId < 0 || toId >= NUM_ACCOUNTS || fromId < 0 || fromId >= NUM_ACCOUNTS){
         return; 
     }
-
+    int suc = 0; 
     switch(TXN_METHOD){
 		case SGL: 
             pthread_mutex_lock(&sg_lock);
@@ -192,17 +194,34 @@ void Bank::transfer(int fromId, int toId, float amt){
 			break; 
 		case STM: 
 			__transaction_atomic{
-                // if(this->account_withdraw(fromId,amt)==-1){
-                //     return; 
-                // } 
-                // this->account_deposit(toId,amt); 
                 if(account_withdraw(fromId,amt)==1){
                     account_deposit(toId,amt); 
                 } 
             }
 			break; 
 		case HTM_SGL: 
-			
+			//Allow for NUM_RETRIES
+            for(int i = 0; !suc && i < NUM_RETRIES; i++){
+                if(_xbegin() == _XBEGIN_STARTED){
+                    if(account_withdraw(fromId,amt)==1){
+                        account_deposit(toId,amt); 
+                    } 
+                    _xend(); 
+                    suc = 1;  
+                }
+            }
+            //Check to see if the transaction still failed
+            if(!suc){
+                //Execute SGL as fall back
+                printf("\nTXN failed after %d retries",NUM_RETRIES); 
+                pthread_mutex_lock(&sg_lock);
+                if(account_withdraw(fromId,amt)==1){
+                    account_deposit(toId,amt); 
+                } 
+                pthread_mutex_unlock(&sg_lock);
+
+            }
+
 			break;
 		case HTM_OPTIMIST: 
 			

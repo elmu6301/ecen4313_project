@@ -8,7 +8,7 @@ all: main #accountUT
 
 #Executable for main
 main: main.o bank.o bank_tester.o 
-	g++ main.o  bank.o bank_tester.o -pthread -fgnu-tm -g -o main
+	g++ main.o  bank.o bank_tester.o -pthread -fgnu-tm -mrtm -g -o main
 	# g++  -pthread -g -o mysort
 
 #Object Files
@@ -16,7 +16,7 @@ main.o: main.cpp
 	g++ -c main.cpp
 
 bank.o: bank/bank.cpp bank/bank.hpp
-	g++ -c bank/bank.cpp -fgnu-tm
+	g++ -c bank/bank.cpp -fgnu-tm -mrtm
 
 bank_tester.o: tester/bank_tester.cpp tester/bank_tester.hpp
 	g++ -c tester/bank_tester.cpp -fgnu-tm
