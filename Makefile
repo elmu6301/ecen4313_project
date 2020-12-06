@@ -7,23 +7,21 @@
 all: main #accountUT
 
 #Executable for main
-main: main.o bank_account.o bank.o bank_tester.o 
-	g++ main.o bank_account.o bank.o bank_tester.o -pthread -fgnu-tm -g -o main
-	# g++  -pthread -g -o mysort
+main: main.o bank.o bank_tester.o ticket_lock.o
+	g++ main.o bank.o bank_tester.o ticket_lock.o -pthread -fgnu-tm -mrtm -g -o main
 
 #Object Files
 main.o: main.cpp 
 	g++ -c main.cpp
 
-bank_account.o: account/bank_account.cpp account/bank_account.hpp
-	g++ -c account/bank_account.cpp -fgnu-tm
+bank.o: bank.cpp bank.hpp
+	g++ -c bank.cpp -fgnu-tm -mrtm 
 
-bank.o: bank/bank.cpp bank/bank.hpp
-	g++ -c bank/bank.cpp
+bank_tester.o: bank_tester.cpp bank_tester.hpp
+	g++ -c bank_tester.cpp -fgnu-tm
 
-bank_tester.o: tester/bank_tester.cpp tester/bank_tester.hpp
-	g++ -c tester/bank_tester.cpp -fgnu-tm
-
+ticket_lock.o: ticket_lock.cpp ticket_lock.hpp
+	g++ -c ticket_lock.cpp 
 
 #Clean
 clean:

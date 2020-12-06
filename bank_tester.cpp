@@ -7,7 +7,9 @@ Lab 1:
 *Note modified from test.c provide
     
 */
-
+/*************************************************
+	FILE INCLUDES
+**************************************************/
 //Library includes
 #include <pthread.h>
 #include <stdio.h>
@@ -20,12 +22,15 @@ Lab 1:
 
 //Developer includes
 #include "bank_tester.hpp"
-#include "../bank/bank.hpp"
+#include "bank.hpp"
+
+
+/*************************************************
+	GLOBAL VARIABLES
+**************************************************/
+Bank * bank; 
 
 pthread_t *threads;
-pthread_mutex_t * locks; 
-
-
 size_t NUM_THREADS;
 pthread_barrier_t p_bar;
 
@@ -33,16 +38,26 @@ struct timespec tstart;
 struct timespec tend;
 
 
-
+/*************************************************
+	FUNCTION DECLARATIONS
+**************************************************/
+//Helper functions
+std::vector<std::vector<TXN_t>> split_vector_array(std::vector<TXN_t>array,int num_parts); 
+void printTXNS(std::vector <TXN_t> &txnData); 
+//Bank functions
+int deposit(int accountID, float amount); 
+void withdraw(int accountID, float amount); 
+void transfer(int fromAccountID, int toAccountID, float amount); 
+/*************************************************
+	GLOBAL INIT AND CLEANING FUNCTIONS
+**************************************************/
 /*
 	Allocates all required data. 
 */
 void global_init()
 {
 	threads = (pthread_t *)malloc(NUM_THREADS * sizeof(pthread_t));
-	//inialize each lock 
 	pthread_barrier_init(&p_bar, NULL, NUM_THREADS);
-
 }
 
 /*
@@ -54,8 +69,9 @@ void global_cleanup()
 	pthread_barrier_destroy(&p_bar);
 }
 
-
-
+/*************************************************
+	HELPER FUNCTIONS
+**************************************************/
 /*
 	Splits a vector array into num_parts. 
 */
@@ -103,6 +119,12 @@ void printTXNS(std::vector <TXN_t> &txnData){
     }
 }
 
+
+
+
+/*************************************************
+	THREAD FUNCTIONS
+**************************************************/
 /*
 	Thread version of bucketsort. Runs bucketsort with the assigned data. 
 */
@@ -118,18 +140,21 @@ void *bank_thread(void *args)
 	}
 	pthread_barrier_wait(&p_bar);
 
-	printf("\nThread[%zu] ready!",tid); 
+	// (*bank).printBank_b(); 
 	//Process each transaction
 	for(int i = 0; i < array.size(); i++){
+		// printf("\nThread[%zu]: ",tid); 
 		//Call the appropriate function based off of the action field
 		if(array[i].action.compare("deposit")== 0){
-			printf("\nDepositing %.2f in account[%d]", array[i].amt, array[i].toID); 
-			// deposit(array[i].toID, array[i].amt); 
-		}else if(array[i].action.compare("withdraw")==0){
-			printf("\nDepositing %.2f in account[%d]", array[i].amt, array[i].toID);
-			// withdraw(array[i].toID, array[i].amt);  
+			printf("\nThd[%zu] D: %.2f in account[%d]",tid, array[i].amt, array[i].toID); 
+			(*bank).deposit(array[i].toID, array[i].amt); 
+		}
+		else if(array[i].action.compare("withdraw")==0){
+			printf("\nThd[%zu] W: %.2f in account[%d]", tid,array[i].amt, array[i].toID);
+			(*bank).withdraw(array[i].toID, array[i].amt);  
 		}else if(array[i].action.compare("transfer")==0){
-			printf("\nTransfering %.2f from account[%d] to account[%d]", array[i].amt, array[i].fromID,array[i].toID); 
+			printf("\nThd[%zu] T: %.2f from account[%d] to account[%d]",tid, array[i].amt, array[i].fromID,array[i].toID); 
+			(*bank).transfer(array[i].fromID, array[i].toID, array[i].amt); 
 		}
 	}
 
@@ -146,8 +171,9 @@ void *bank_thread(void *args)
 	Runs the parallelized bucketsort. Creates and joins all threads and returns
 	the data to main. 
 */
-int bank_tester(int num_threads, Bank &bank, std::vector <TXN_t> &data)
+int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 {
+	bank = &myBank; 
 
 	NUM_THREADS = num_threads;
 	if (NUM_THREADS > 150) 
@@ -155,17 +181,14 @@ int bank_tester(int num_threads, Bank &bank, std::vector <TXN_t> &data)
 		printf("ERROR; too many threads\n");
 		exit(-1);
 	}
-	NUM_THREADS = 1; 
+	// NUM_THREADS = 1; 
+
 	//Global init
 	global_init();
 
 	//Split array into NUM_THREADS parts
 	std::vector<std::vector<TXN_t>> split_arrays = split_vector_array(data, NUM_THREADS);
-	for(int i = 0; i < NUM_THREADS; i++){
-		printf("\n-------Array[%d]----------------------------------",i); 
-		printTXNS(split_arrays[i]); 
-	}
-
+	(*bank).printBank();
 	
 	struct bank_thread_args args[NUM_THREADS];
 	
@@ -174,7 +197,7 @@ int bank_tester(int num_threads, Bank &bank, std::vector <TXN_t> &data)
 	args[0].array = split_arrays[0];
 
 
-	// // launch threads
+	// launch threads
 	int ret;
 	size_t i;
 
@@ -205,10 +228,9 @@ int bank_tester(int num_threads, Bank &bank, std::vector <TXN_t> &data)
 		// printf("joined thread %zu\n",i+1);
 	}
 
-
-
+	(*bank).printBank(); 
 	global_cleanup();
-
+	
 	unsigned long long elapsed_ns;
 	elapsed_ns = (tend.tv_sec - tstart.tv_sec) * 1000000000 + (tend.tv_nsec - tstart.tv_nsec);
 	printf("\nElapsed (ns): %llu\n", elapsed_ns);

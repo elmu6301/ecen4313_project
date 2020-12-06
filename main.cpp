@@ -16,16 +16,16 @@ Lab XXXX:
 
 using namespace std; 
 //Developer includes
-#include "bank/bank.hpp"
-#include "account/bank_account.hpp"
-#include "tester/bank_tester.hpp"
+#include "bank.hpp"
+#include "bank_tester.hpp"
+// #include "lock/ticket_lock.hpp"
 
 //Global Variables
 char my_name[] = "Elena Murray"; 
 
 
 void printUsage(){
-    printf("main [--init initfile.txt] [--tnx tnxfile.txt] [-o outfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htmsgl,htmopt>]\n");
+    printf("main [--init initfile.txt] [--tnx tnxfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htmsgl,htmopt>]\n");
 }
 
 
@@ -71,6 +71,10 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
         
         //Get action
         txn.action = line.substr(0,line.find(",")); 
+        if(txn.action.compare("stop")==0){
+            fileIn.close(); 
+            return 1; 
+        }
     
         // Get to account id
         line = line.substr(line.find(",")+1);
@@ -109,8 +113,14 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
     return 1; 
 }
 
+
+
 //main function
 int main(int argc, char* argv[]){ 
+
+    // TicketLock * lock; 
+    // lock = new TicketLock[1]; 
+    // lock->lock(); 
 
     //variable for parsing the command line
     string initFile; //stores the name of the file to initialize the bank system from
@@ -126,11 +136,10 @@ int main(int argc, char* argv[]){
     static struct option longopt[] = {
         {"init", required_argument, NULL, 'i'},// init file
         {"txn", required_argument, NULL, 'x'}, // transaction file
-        {"o", required_argument, NULL, 'o'}, // output file
         {"t", required_argument, NULL, 't'}, // threads
         {"alg", required_argument, NULL, 'a'} // algorithm
     }; 
-    char * optstr = "i:x:o:t:a:"; 
+    char * optstr = "i:x:t:a:"; 
     //Parse the rest of the command line
     while((opt = getopt_long(argc, argv, optstr, longopt, NULL))!=-1){
         // cout<<opt<<endl; 
@@ -140,10 +149,7 @@ int main(int argc, char* argv[]){
                 break; 
             case 'x':
                 txnFile = optarg; 
-                break; 
-            case 'o':
-                outFile = optarg; 
-                break; 
+                break;  
             case 't':
                 threads = optarg; 
                 break; 
@@ -165,14 +171,7 @@ int main(int argc, char* argv[]){
         cout<<"The transaction file: "<<txnFile<<" is not a .txt file."<<endl; 
         printUsage(); 
         return -1;
-    }
-
-    // if(outFile.rfind(".txt")==string::npos){
-    //     cout<<"The output file: "<<outFile<<" is not a .txt file."<<endl; 
-    //     printUsage(); 
-    //     return -2;
-    // }   
-
+    } 
 
     int txnAlg; 
     if(alg.compare("sgl")== 0){
@@ -184,13 +183,12 @@ int main(int argc, char* argv[]){
     }else if(alg.compare("htmsgl")==0){
         txnAlg = HTM_SGL; 
     }else if(alg.compare("htmopt")==0){
-        txnAlg = HTM_OPTIMIST; 
+        txnAlg = OPTIMIST; 
     }else{
         cout<<"An invalid algorithm was entered."<<endl; 
         printUsage();
         return -3; 
     }
-    // printf("\ntxnAlg = %d",txnAlg); 
     //Convert threads to an integer
     if(threads.empty()){
         cout<<"No threads were entered. Running the program with only the master thread (NUM_THREAD = 1). "<<endl; 
@@ -219,21 +217,12 @@ int main(int argc, char* argv[]){
 
     //read in data from the initialization file and store it to initData
     readInitData(initFile, initData); 
-
-    // for(int i = 0; i < initData.size();  i++){
-    //     printf("\nInitData[%d] = %.2f", i, initData[i]); 
-    // }
-    // printf("\n"); 
     int num_accounts = initData.size(); 
 
     cout<<"Creating Bank with "<<num_accounts<<" accounts and initialized by '"<<initFile<<"'.txt"<<endl; 
 
     //create bank and initalize it with initData
-    Bank myBank = Bank(num_accounts, txnAlg); 
-    myBank.initAccounts(initData); 
-    // myBank.printBank(); 
-
-
+    Bank myBank = Bank(txnAlg, initData);
 
     //Read in transactions
     readTxnData(txnFile, txnData);
@@ -243,30 +232,9 @@ int main(int argc, char* argv[]){
         cout<<"An invalid thread count was entered. The number of threads cannot exceed the amount of data.\nSetting the number of threads to match the amount of data."<<endl; 
         num_threads = data_size; 
     }
-    bank_tester(num_threads,txnAlg, initData, txnData); 
+    bank_tester(num_threads,myBank, txnData); 
     
-    // cout<<"Applying transactions from '"<<initFile<<"'.txt on "<<num_threads<<" threads and '"<<alg<<"' transaction algorithm"<<endl; 
-
-
-    
- 
-    
-    // // Output sorted data to output file
-    // ofstream fileOut; 
-    // fileOut.open(outFile); 
-    //  if(!fileOut){
-    //     cout<<"Unable to open the file: "<<outFile<<endl; 
-    //     return -4; 
-    // }
-
-    // for(int i = 0; i < data.size(); i++){
-    //     fileOut<<data[i]<<endl; 
-    // }
-
-   
-
-    // fileOut.close();    
-    // myBank.printBank(); 
+    //Perform error checking
     
 }
 
