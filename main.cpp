@@ -25,7 +25,7 @@ char my_name[] = "Elena Murray";
 
 
 void printUsage(){
-    printf("main [--init initfile.txt] [--tnx tnxfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htmsgl,htmopt>]\n");
+    printf("main [--init initfile.txt] [--tnx tnxfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htm,opt>]\n");
 }
 
 
@@ -180,9 +180,9 @@ int main(int argc, char* argv[]){
         txnAlg = PHASE_2; 
     }else if(alg.compare("stm")==0){
         txnAlg = STM; 
-    }else if(alg.compare("htmsgl")==0){
+    }else if(alg.compare("htm")==0){
         txnAlg = HTM_SGL; 
-    }else if(alg.compare("htmopt")==0){
+    }else if(alg.compare("opt")==0){
         txnAlg = OPTIMIST; 
     }else{
         cout<<"An invalid algorithm was entered."<<endl; 

@@ -15,6 +15,7 @@ Lab 2:
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
+#include <pthread.h>
 #include <immintrin.h>
 
 //Developer includes
@@ -208,8 +209,34 @@ void Bank::transfer(int fromId, int toId, float amt){
             }
 
 			break;
-		case OPTIMIST: 
-			
+		case OPTIMIST:
+            thread_local float balFrom; 
+            thread_local float balTo;
+            
+            thread_local float newBalFrom; 
+            thread_local float newBalTo;  
+            do 
+            {
+                 //Read set
+                balFrom = accounts[fromId].bal; 
+                balTo = accounts[toId].bal; 
+                //Write set
+                newBalFrom =  balFrom - amt; 
+                newBalTo = balTo + amt; 
+            
+                //Validate
+                sg_lock.lock();  
+                if(balFrom == accounts[fromId].bal && balTo == accounts[toId].bal){
+                    //write 
+                    suc = 1; 
+                    accounts[fromId].bal = newBalFrom; 
+                    accounts[toId].bal = newBalTo;
+                }
+                
+                sg_lock.unlock(); 
+            }while (suc==0); 
+            
+          
 			break;
 		default: 
 			
