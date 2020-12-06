@@ -16,8 +16,9 @@ Lab XXXX:
 
 using namespace std; 
 //Developer includes
-#include "bank/bank.hpp"
-#include "tester/bank_tester.hpp"
+#include "bank.hpp"
+#include "bank_tester.hpp"
+// #include "lock/ticket_lock.hpp"
 
 //Global Variables
 char my_name[] = "Elena Murray"; 
@@ -117,8 +118,9 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
 //main function
 int main(int argc, char* argv[]){ 
 
-    TicketLock * lock; 
-    lock = new TicketLock[1]; 
+    // TicketLock * lock; 
+    // lock = new TicketLock[1]; 
+    // lock->lock(); 
 
     //variable for parsing the command line
     string initFile; //stores the name of the file to initialize the bank system from
@@ -181,7 +183,7 @@ int main(int argc, char* argv[]){
     }else if(alg.compare("htmsgl")==0){
         txnAlg = HTM_SGL; 
     }else if(alg.compare("htmopt")==0){
-        txnAlg = HTM_OPTIMIST; 
+        txnAlg = OPTIMIST; 
     }else{
         cout<<"An invalid algorithm was entered."<<endl; 
         printUsage();

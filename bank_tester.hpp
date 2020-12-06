@@ -15,7 +15,7 @@ using namespace std;
 #include <vector>
 #include <list>
 
-#include "../bank/bank.hpp"
+#include "bank.hpp"
 
 struct TXN_t{
     string action; 

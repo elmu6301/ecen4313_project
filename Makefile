@@ -14,14 +14,14 @@ main: main.o bank.o bank_tester.o ticket_lock.o
 main.o: main.cpp 
 	g++ -c main.cpp
 
-bank.o: bank/bank.cpp bank/bank.hpp
-	g++ -c bank/bank.cpp -fgnu-tm -mrtm 
+bank.o: bank.cpp bank.hpp
+	g++ -c bank.cpp -fgnu-tm -mrtm 
 
-bank_tester.o: tester/bank_tester.cpp tester/bank_tester.hpp
-	g++ -c tester/bank_tester.cpp -fgnu-tm
+bank_tester.o: bank_tester.cpp bank_tester.hpp
+	g++ -c bank_tester.cpp -fgnu-tm
 
-ticket_lock.o: lock/ticket_lock.cpp lock/ticket_lock.hpp
-	g++ -c lock/ticket_lock.cpp
+ticket_lock.o: ticket_lock.cpp ticket_lock.hpp
+	g++ -c ticket_lock.cpp 
 
 #Clean
 clean:

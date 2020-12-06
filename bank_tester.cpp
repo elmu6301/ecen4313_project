@@ -22,7 +22,7 @@ Lab 1:
 
 //Developer includes
 #include "bank_tester.hpp"
-#include "../bank/bank.hpp"
+#include "bank.hpp"
 
 
 /*************************************************
@@ -66,7 +66,6 @@ void global_init()
 void global_cleanup()
 {
 	free(threads);
-	// delete bank; 
 	pthread_barrier_destroy(&p_bar);
 }
 

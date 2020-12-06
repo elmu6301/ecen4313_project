@@ -7,22 +7,23 @@ Date: 10/17/2020
 Lab 2: 
     
 */
-using namespace std;
+
 
 #include <stdio.h>
 #include <string>
-#include <atomic>
 #include <vector>
 
 //Developer includes
-#include "../lock/ticket_lock.hpp"
+#include "ticket_lock.hpp"
+
+using namespace std;
 
 enum TXN_IMP{
     SGL, 
     PHASE_2,
     STM, 
     HTM_SGL,
-    HTM_OPTIMIST
+    OPTIMIST
 }; 
 
 struct Account_t{
@@ -43,8 +44,11 @@ class Bank{
         int __attribute__((transaction_safe))account_withdraw(int id, float amt); 
 
     public:
+        // Bank() = delete; 
         Bank(int txn_method, std::vector <float> &startingBalances); 
         ~Bank(); 
+        Bank(const Bank&); 
+
         void transfer(int fromId, int toId, float amt); 
         void deposit(int id, float amt); 
         void withdraw(int id, float amt); 

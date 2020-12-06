@@ -37,12 +37,6 @@ TicketLock::TicketLock(){
     lock_held.store(false); 
 }
 
-TicketLock::~TicketLock(){
-    next_num.store(0); 
-    now_serving.store(0); 
-    lock_held.store(false); 
-}
-
 /*
     Aquires the lock
 */
