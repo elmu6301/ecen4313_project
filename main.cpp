@@ -66,7 +66,7 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
     string line, temp; 
 
     TXN_t txn; 
-    int i = 0; 
+    int i = 1; 
     while(getline(fileIn, line)){
         
         //Get action
@@ -107,9 +107,14 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
                 fileIn.close(); 
                 return -4; 
             }
-            // cout<<"TXN["<<i<<"]: action = "<<txn.action<<" toID = "<<txn.toID<<" fromID = "<<txn.fromID<<" amt = "<<txn.amt<<endl; 
+            cout<<"TXN["<<i<<"]: action = "<<txn.action<<" toID = "<<txn.toID<<" fromID = "<<txn.fromID<<" amt = "<<txn.amt<<endl; 
             data.push_back(txn); 
+            
+            }else{
+                printf("\n"); 
             }
+            i++; 
+            
        
     }
     fileIn.close(); 

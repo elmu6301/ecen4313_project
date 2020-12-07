@@ -73,5 +73,3 @@ transfer, 0, 1, 10.00
 transfer, 0, 1, 10.00
 transfer, 0, 1, 10.00
 transfer, 0, 1, 10.00
-
-

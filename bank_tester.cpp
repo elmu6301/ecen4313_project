@@ -179,14 +179,14 @@ void *bank_thread(void *args)
 	for(int i = 0; i < num_txns; i++){
 		//Call the appropriate function based off of the action field
 		if(array[i].action.compare("deposit")== 0){
-			// printf("\nThd[%zu] D: %.2f in account[%d]",tid, array[i].amt, array[i].toID); 
+			printf("\nThd[%zu] D: %.2f in account[%d]",tid, array[i].amt, array[i].toID); 
 			(*bank).deposit(array[i].toID, array[i].amt); 
 		}
 		else if(array[i].action.compare("withdraw")==0){
-			// printf("\nThd[%zu] W: %.2f in account[%d]", tid,array[i].amt, array[i].toID);
+			printf("\nThd[%zu] W: %.2f in account[%d]", tid,array[i].amt, array[i].toID);
 			(*bank).withdraw(array[i].fromID, array[i].amt);  
 		}else if(array[i].action.compare("transfer")==0){
-			// printf("\nThd[%zu] T: %.2f from account[%d] to account[%d]",tid, array[i].amt, array[i].fromID,array[i].toID); 
+			printf("\nThd[%zu] T: %.2f from account[%d] to account[%d]",tid, array[i].amt, array[i].fromID,array[i].toID); 
 			(*bank).transfer(array[i].fromID, array[i].toID, array[i].amt); 
 		}
 	}
