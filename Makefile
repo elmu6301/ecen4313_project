@@ -4,11 +4,11 @@
 # Lab X: 
 # 	Makefile
 
-all: main #accountUT
+all: bank
 
-#Executable for main
-main: main.o bank.o bank_tester.o ticket_lock.o
-	g++ main.o bank.o bank_tester.o ticket_lock.o -pthread -fgnu-tm -mrtm -g -o main
+#Executable for bank
+bank: main.o bank.o bank_tester.o ticket_lock.o
+	g++ main.o bank.o bank_tester.o ticket_lock.o -pthread -fgnu-tm -mrtm -g -o bank
 
 #Object Files
 main.o: main.cpp 
@@ -25,4 +25,4 @@ ticket_lock.o: ticket_lock.cpp ticket_lock.hpp
 
 #Clean
 clean:
-	rm *.o main
+	rm *.o bank

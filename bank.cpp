@@ -330,8 +330,11 @@ float Bank::getTotal(){
     return total; 
 }
 
- Account_t * Bank::getAccounts(){
-    return accounts; 
+ float Bank::getAccountBalance(int id){
+    if(0 <= id && id < NUM_ACCOUNTS){
+        return accounts[id].bal; 
+    }
+    return -1;  
  }
 
  int Bank::getNumAccounts(){

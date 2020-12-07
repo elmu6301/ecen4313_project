@@ -8,6 +8,7 @@ Lab XXXX:
 //Library includes
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <stdio.h>
 #include <getopt.h>
 #include <vector>
@@ -18,14 +19,13 @@ using namespace std;
 //Developer includes
 #include "bank.hpp"
 #include "bank_tester.hpp"
-// #include "lock/ticket_lock.hpp"
 
 //Global Variables
 char my_name[] = "Elena Murray"; 
 
 
 void printUsage(){
-    printf("main [--init initfile.txt] [--tnx tnxfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htm,opt>]\n");
+    printf("bank [--init initfile.txt] [--tnx tnxfile.txt] [--o outfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htm,opt>]\n");
 }
 
 
@@ -121,26 +121,23 @@ int printLedger(string outFile, Bank &bank){
         cout<<"Unable to open the file: "<<outFile<<endl; 
         return -4; 
     }
-    Account_t * account = bank.getAccounts(); 
+
     int num_accts = bank.getNumAccounts(); 
     for(int i = 0; i < num_accts; i++){
-        fileOut<<"Account["<<i<<"]: $"<<endl; 
+        fileOut<<"Account["<<i<<"]: $"<<fixed<<std::setprecision(2)<<bank.getAccountBalance(i)<<endl; 
     }
-
+    fileOut<<"Total: $"<<fixed<<std::setprecision(2)<<bank.getTotal()<<endl; 
     fileOut.close();    
+    return 1; 
 }
 
 //main function
 int main(int argc, char* argv[]){ 
 
-    // TicketLock * lock; 
-    // lock = new TicketLock[1]; 
-    // lock->lock(); 
-
     //variable for parsing the command line
     string initFile; //stores the name of the file to initialize the bank system from
     string txnFile; //stores the name of the file to execute transactions from
-    string outFile; //stores the name of the file to output the data
+    string outFile; //stores the name of the file to output the data 
     string threads; 
     string alg; 
 
@@ -154,7 +151,7 @@ int main(int argc, char* argv[]){
         {"t", required_argument, NULL, 't'}, // threads
         {"alg", required_argument, NULL, 'a'} // algorithm
     }; 
-    char * optstr = "i:x:t:a:"; 
+    char * optstr = "i:x:t:a:o:"; 
     //Parse the rest of the command line
     while((opt = getopt_long(argc, argv, optstr, longopt, NULL))!=-1){
         // cout<<opt<<endl; 
@@ -171,7 +168,9 @@ int main(int argc, char* argv[]){
             case 'a':
                 alg = optarg; 
                 break; 
-            
+            case 'o':
+                outFile = optarg; 
+                break; 
         }
     }
     //Check options to make sure that they are valid
@@ -256,7 +255,7 @@ int main(int argc, char* argv[]){
     bank_tester(num_threads,myBank, txnData); 
     
     //Perform error checking
-    
+    printLedger(outFile, myBank); 
 }
 
 

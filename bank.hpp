@@ -54,7 +54,7 @@ class Bank{
         void withdraw(int id, float amt); 
         float computeTotal(); 
         float getTotal(); 
-        Account_t * getAccounts(); 
+        float getAccountBalance(int id); 
         int getNumAccounts(); 
         void printBank(); 
         
