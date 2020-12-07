@@ -52,3 +52,26 @@ transfer, 6, 0, 22.25
 transfer, 7, 0, 22.25
 transfer, 8, 0, 22.25
 transfer, 9, 0, 22.25
+#Transfer Phase 3 - throttle 2 Accounts
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+transfer, 0, 1, 10.00
+
+
