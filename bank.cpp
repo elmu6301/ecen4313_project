@@ -62,12 +62,12 @@ void __attribute__((transaction_safe)) Bank::account_deposit(int id, float amt){
 }
 
 int __attribute__((transaction_safe)) Bank::account_withdraw(int id, float amt){
-    if(this->accounts[id].bal >= amt){
-        this->accounts[id].bal -= amt; 
-        this->total -=amt;
-        return 1; 
+    if(this->accounts[id].bal < amt){
+        return -1; 
     }
-    return -1; 
+    this->accounts[id].bal -= amt; 
+    this->total -=amt;
+    return 1; 
 }
 
 void Bank::deposit(int id, float amt){
@@ -145,38 +145,50 @@ void Bank::deposit(int id, float amt){
 
 void Bank::withdraw(int id, float amt){
     if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
-            return; 
+        return; 
     }
     int suc = 0;
+    int err = 1; 
     thread_local float bal; 
     thread_local float newBal;  
     thread_local float tot; 
     thread_local float newTot; 
+    // printf("\nWidthdrawing $%.2f from account[%d]", amt, id); 
     switch(TXN_METHOD){
 		case SGL: 
             sg_lock.lock(); 
-            account_withdraw(id,amt); 
+            err = account_withdraw(id,amt); 
+            printf("\nAccount[%d] updated balance: $%.2f",id, accounts[id].bal);
             sg_lock.unlock(); 
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
+            }
 			break;
 		case PHASE_2: 
 			account_locks[id].lock(); 
-             account_withdraw(id,amt); 
+            err = account_withdraw(id,amt); 
             account_locks[id].unlock(); 
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
+            }
 			break; 
 		case STM: 
 			__transaction_atomic{
-                account_withdraw(id,amt); 
+                err = account_withdraw(id,amt); 
+            }
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
             }
 			break; 
 		case HTM_SGL: 
-			//Allow for NUM_RETRIES
+			//Allow for NUM_RETRIES 
             for(int i = 0; !suc && i < NUM_RETRIES; i++){
                 if(_xbegin() == _XBEGIN_STARTED){
                     //Check to see if the lock is held
                     if(sg_lock.lockHeld()){
                         _xabort(1); 
                     }
-                    account_withdraw(id,amt); 
+                    err = account_withdraw(id,amt); 
                     
                     _xend(); 
                     suc = 1;  
@@ -186,8 +198,11 @@ void Bank::withdraw(int id, float amt){
             if(!suc){
                 //Execute SGL as fall back
                 sg_lock.lock(); 
-                account_withdraw(id,amt);
+                err =account_withdraw(id,amt);
                 sg_lock.unlock(); 
+            }
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
             }
 			break;
 		case OPTIMIST: 
@@ -198,8 +213,8 @@ void Bank::withdraw(int id, float amt){
                 bal = accounts[id].bal; 
                 tot = this->total; 
                 //Write set
-                newBal =  bal + amt;   
-                newTot = tot + amt;           
+                newBal =  bal - amt;   
+                newTot = tot - amt;           
                 //Validate
                 sg_lock.lock();   
                 if(bal== accounts[id].bal && tot == this->total ){
@@ -221,7 +236,8 @@ void Bank::transfer(int fromId, int toId, float amt){
     if(amt < 0 || toId < 0 || toId >= NUM_ACCOUNTS || fromId < 0 || fromId >= NUM_ACCOUNTS || fromId == toId){
         return; 
     }
-    thread_local int suc = 0; 
+    int err =0; 
+    int suc = 0; 
     thread_local float balFrom; 
     thread_local float balTo;
     thread_local float tot; 
@@ -231,10 +247,14 @@ void Bank::transfer(int fromId, int toId, float amt){
     switch(TXN_METHOD){
 		case SGL: 
             sg_lock.lock(); 
-            if(account_withdraw(fromId,amt)==1){
+            if((err=account_withdraw(fromId,amt))==1){
                 account_deposit(toId,amt); 
             } 
             sg_lock.unlock(); 
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+            }
+
 			break;
 		case PHASE_2: 
             bool fromHeld, toHeld; 
@@ -247,45 +267,57 @@ void Bank::transfer(int fromId, int toId, float amt){
                 }
             }
 
-            if(account_withdraw(fromId,amt)==1){
+            if((err=account_withdraw(fromId,amt))==1){
                 account_deposit(toId,amt); 
             } 
             account_locks[toId].unlock(); 
             account_locks[fromId].unlock(); 
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+            }
 			break; 
 		case STM: 
 			__transaction_atomic{
-                if(account_withdraw(fromId,amt)==1){
+                if((err=account_withdraw(fromId,amt))==1){
                     account_deposit(toId,amt); 
                 } 
             };
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+            }
 			break; 
 		case HTM_SGL: 
-			//Allow for NUM_RETRIES
+			//Allow for NUM_RETRIESprintf("got here"); 
+            printf("\nsuc = %d",suc);
             for(int i = 0; !suc && i < NUM_RETRIES; i++){
                 if(_xbegin() == _XBEGIN_STARTED){
                     //Check to see if the lock is held
                     if(sg_lock.lockHeld()){
                         _xabort(1); 
                     }
-
-                    if(account_withdraw(fromId,amt)==1){
+                    if((err=account_withdraw(fromId,amt))==1){
                         account_deposit(toId,amt); 
                     } 
                     _xend(); 
                     suc = 1;  
                 }
             }
+            
             //Check to see if the transaction still failed
             if(!suc){
                 //Execute SGL as fall back
                 sg_lock.lock(); 
-                    if(account_withdraw(fromId,amt)==1){
+                    if((err=account_withdraw(fromId,amt))==1){
                         account_deposit(toId,amt); 
                     } 
                 sg_lock.unlock(); 
             }
-
+            printf("\nUpdatefromAcct[%d] = $%.2f, toAcct[%d] = $%.2f",fromId,accounts[fromId].bal,
+                    toId,accounts[toId].bal) ; 
+            // printf("\nerror = %d",err); 
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+            }
 			break;
 		case OPTIMIST:
             while (suc==0)
@@ -306,15 +338,19 @@ void Bank::transfer(int fromId, int toId, float amt){
                     if(accounts[fromId].bal >= amt){
                         accounts[fromId].bal = newBalFrom; 
                         accounts[toId].bal = newBalTo;
+                    }else{
+                        err = -1; 
                     }
                   
                 }
                 sg_lock.unlock(); 
             }
+            if(err==-1){
+                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+            }
           
 			break;
     }
-    
 }
 
 

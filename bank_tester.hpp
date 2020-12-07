@@ -22,6 +22,7 @@ struct TXN_t{
     int toID; 
     int fromID; 
     float amt; 
+    int txnID; 
 }; 
 
 
