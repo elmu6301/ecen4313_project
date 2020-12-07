@@ -107,11 +107,11 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
                 fileIn.close(); 
                 return -4; 
             }
-            cout<<"TXN["<<i<<"]: action = "<<txn.action<<" toID = "<<txn.toID<<" fromID = "<<txn.fromID<<" amt = "<<txn.amt<<endl; 
+            // cout<<"TXN["<<i<<"]: action = "<<txn.action<<" toID = "<<txn.toID<<" fromID = "<<txn.fromID<<" amt = "<<txn.amt<<endl; 
             data.push_back(txn); 
             
             }else{
-                printf("\n"); 
+                // printf("\n"); 
             }
             i++; 
             
@@ -264,6 +264,8 @@ int main(int argc, char* argv[]){
     
     //Perform error checking
     printLedger(outFile, myBank); 
+
+    return 0; 
 }
 
 
