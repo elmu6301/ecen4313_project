@@ -36,7 +36,6 @@ Bank::Bank(int txn_method, std::vector <float> &startingBalances){
     NUM_ACCOUNTS = startingBalances.size(); 
     total = 0; 
 
-
     //Create accounts and assign id's and balances
     accounts = new Account_t[NUM_ACCOUNTS]; 
     for(int i = 0; i < NUM_ACCOUNTS; i++){
@@ -44,6 +43,7 @@ Bank::Bank(int txn_method, std::vector <float> &startingBalances){
         accounts[i].bal = startingBalances[i]; 
         total += startingBalances[i]; 
     }
+    //Create locks 
     account_locks = new TicketLock[NUM_ACCOUNTS]; 
  }
 
@@ -62,47 +62,82 @@ void __attribute__((transaction_safe)) Bank::account_deposit(int id, float amt){
 }
 
 int __attribute__((transaction_safe)) Bank::account_withdraw(int id, float amt){
-    if(this->accounts[id].bal < amt){
-        return -1;
+    if(this->accounts[id].bal >= amt){
+        this->accounts[id].bal -= amt; 
+        this->total -=amt;
+        return 1; 
     }
-    this->accounts[id].bal -= amt; 
-    this->total -=amt; 
-    return 1; 
+    return -1; 
 }
 
 void Bank::deposit(int id, float amt){
     if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
-            return; 
+        return; 
     }
-
-    switch(TXN_METHOD){
+    int suc = 0;
+    thread_local float bal; 
+    thread_local float newBal;  
+    thread_local float tot; 
+    thread_local float newTot; 
+    switch(this->TXN_METHOD){
 		case SGL: 
-            sg_lock.lock();
-            this->accounts[id].bal += amt; 
-            this->total +=amt;    
+            sg_lock.lock(); 
+            account_deposit(id,amt);  
             sg_lock.unlock(); 
 			break;
 		case PHASE_2: 
             account_locks[id].lock();
-            this->accounts[id].bal += amt; 
-            this->total +=amt;
+            account_deposit(id,amt); 
             account_locks[id].unlock(); 
 			break; 
 		case STM: 
 			__transaction_atomic{
-            this->accounts[id].bal += amt; 
-            this->total +=amt;
+                account_deposit(id,amt); 
             }
 			break; 
 		case HTM_SGL: 
-			
-
+			//Allow for NUM_RETRIES
+            for(int i = 0; !suc && i < NUM_RETRIES; i++){
+                if(_xbegin() == _XBEGIN_STARTED){
+                    //Check to see if the lock is held
+                    if(sg_lock.lockHeld()){
+                        _xabort(1); 
+                    }
+                    account_deposit(id,amt); 
+                    
+                    _xend(); 
+                    suc = 1;  
+                }
+            }
+            //Check to see if the transaction still failed
+            if(!suc){
+                //Execute SGL as fall back
+                sg_lock.lock(); 
+                account_deposit(id,amt); 
+                sg_lock.unlock(); 
+            }
 			break;
 		case OPTIMIST: 
-			
-			break;
-		default: 
-			
+    
+            while(suc==0)
+            {
+                //Read set
+                bal = accounts[id].bal; 
+                tot = this->total; 
+                //Write set
+                newBal =  bal + amt;   
+                newTot = tot + amt;           
+                //Validate
+                sg_lock.lock();   
+                if(bal== accounts[id].bal && tot == this->total ){
+                    //write 
+                    suc = 1; 
+                    accounts[id].bal = newBal; 
+                    this->total = newTot; 
+                }
+                sg_lock.unlock(); 
+            }
+
 			break;
     }
     
@@ -112,39 +147,69 @@ void Bank::withdraw(int id, float amt){
     if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
             return; 
     }
+    int suc = 0;
+    thread_local float bal; 
+    thread_local float newBal;  
+    thread_local float tot; 
+    thread_local float newTot; 
     switch(TXN_METHOD){
 		case SGL: 
             sg_lock.lock(); 
-            if(this->accounts[id].bal >= amt){
-                this->accounts[id].bal -= amt; 
-                this->total -=amt;
-            }
+            account_withdraw(id,amt); 
             sg_lock.unlock(); 
 			break;
 		case PHASE_2: 
 			account_locks[id].lock(); 
-            if(this->accounts[id].bal >= amt){
-                this->accounts[id].bal -= amt; 
-                this->total -=amt;
-            }
+             account_withdraw(id,amt); 
             account_locks[id].unlock(); 
 			break; 
 		case STM: 
 			__transaction_atomic{
-                if(this->accounts[id].bal >= amt){
-                    this->accounts[id].bal -= amt; 
-                    this->total -=amt;
-                }
+                account_withdraw(id,amt); 
             }
 			break; 
 		case HTM_SGL: 
-			
+			//Allow for NUM_RETRIES
+            for(int i = 0; !suc && i < NUM_RETRIES; i++){
+                if(_xbegin() == _XBEGIN_STARTED){
+                    //Check to see if the lock is held
+                    if(sg_lock.lockHeld()){
+                        _xabort(1); 
+                    }
+                    account_withdraw(id,amt); 
+                    
+                    _xend(); 
+                    suc = 1;  
+                }
+            }
+            //Check to see if the transaction still failed
+            if(!suc){
+                //Execute SGL as fall back
+                sg_lock.lock(); 
+                account_withdraw(id,amt);
+                sg_lock.unlock(); 
+            }
 			break;
 		case OPTIMIST: 
 			
-			break;
-		default: 
-			
+            while(suc==0)
+            {
+                //Read set
+                bal = accounts[id].bal; 
+                tot = this->total; 
+                //Write set
+                newBal =  bal + amt;   
+                newTot = tot + amt;           
+                //Validate
+                sg_lock.lock();   
+                if(bal== accounts[id].bal && tot == this->total ){
+                    //write 
+                    suc = 1; 
+                    accounts[id].bal = newBal; 
+                    this->total = newTot; 
+                }
+                sg_lock.unlock(); 
+            }
 			break;
     }
     
@@ -153,10 +218,16 @@ void Bank::withdraw(int id, float amt){
 
 void Bank::transfer(int fromId, int toId, float amt){
     //Check for invalid amounts and account ids
-    if(amt < 0 || toId < 0 || toId >= NUM_ACCOUNTS || fromId < 0 || fromId >= NUM_ACCOUNTS){
+    if(amt < 0 || toId < 0 || toId >= NUM_ACCOUNTS || fromId < 0 || fromId >= NUM_ACCOUNTS || fromId == toId){
         return; 
     }
-    int suc = 0; 
+    thread_local int suc = 0; 
+    thread_local float balFrom; 
+    thread_local float balTo;
+    thread_local float tot; 
+    thread_local float newBalFrom; 
+    thread_local float newBalTo;  
+
     switch(TXN_METHOD){
 		case SGL: 
             sg_lock.lock(); 
@@ -166,13 +237,21 @@ void Bank::transfer(int fromId, int toId, float amt){
             sg_lock.unlock(); 
 			break;
 		case PHASE_2: 
-            account_locks[fromId].lock(); 
-            account_locks[toId].lock(); 
+            bool fromHeld, toHeld; 
+            while((fromHeld = account_locks[fromId].tryLock()) == false  || (toHeld = account_locks[toId].tryLock()) == false){
+                //Only hold 1 lock so release it
+                if(fromHeld){
+                    account_locks[fromId].unlock(); 
+                }else{
+                    account_locks[toId].unlock(); 
+                }
+            }
+
             if(account_withdraw(fromId,amt)==1){
                 account_deposit(toId,amt); 
             } 
-            account_locks[fromId].unlock(); 
             account_locks[toId].unlock(); 
+            account_locks[fromId].unlock(); 
 			break; 
 		case STM: 
 			__transaction_atomic{
@@ -200,7 +279,6 @@ void Bank::transfer(int fromId, int toId, float amt){
             //Check to see if the transaction still failed
             if(!suc){
                 //Execute SGL as fall back
-                printf("\nTXN failed after %d retries",NUM_RETRIES); 
                 sg_lock.lock(); 
                     if(account_withdraw(fromId,amt)==1){
                         account_deposit(toId,amt); 
@@ -210,36 +288,30 @@ void Bank::transfer(int fromId, int toId, float amt){
 
 			break;
 		case OPTIMIST:
-            thread_local float balFrom; 
-            thread_local float balTo;
-            
-            thread_local float newBalFrom; 
-            thread_local float newBalTo;  
-            do 
+            while (suc==0)
             {
-                 //Read set
+                //Read set
                 balFrom = accounts[fromId].bal; 
                 balTo = accounts[toId].bal; 
+                tot = this->total; 
                 //Write set
                 newBalFrom =  balFrom - amt; 
                 newBalTo = balTo + amt; 
             
                 //Validate
                 sg_lock.lock();  
-                if(balFrom == accounts[fromId].bal && balTo == accounts[toId].bal){
+                if(balFrom == accounts[fromId].bal && balTo == accounts[toId].bal && tot == this->total){
                     //write 
                     suc = 1; 
-                    accounts[fromId].bal = newBalFrom; 
-                    accounts[toId].bal = newBalTo;
+                    if(accounts[fromId].bal >= amt){
+                        accounts[fromId].bal = newBalFrom; 
+                        accounts[toId].bal = newBalTo;
+                    }
+                  
                 }
-                
                 sg_lock.unlock(); 
-            }while (suc==0); 
-            
+            }
           
-			break;
-		default: 
-			
 			break;
     }
     
@@ -254,14 +326,26 @@ float Bank::computeTotal(){
     return comp_total; 
 }
 
+float Bank::getTotal(){
+    return total; 
+}
+
+ Account_t * Bank::getAccounts(){
+    return accounts; 
+ }
+
+ int Bank::getNumAccounts(){
+    return NUM_ACCOUNTS; 
+ }
+
 void Bank::printBank(){
     sg_lock.lock();            
-    printf("\n-------------- Bank -------------"); 
+    printf("\n--------------- Bank --------------"); 
     for(int i = 0; i < NUM_ACCOUNTS; i++){
         printf("\n\tAccount[%d]: $%.2f", accounts[i].id, accounts[i].bal); 
     }
     printf("\n\n\tBank Total: $%.2f", total); 
-    printf("\n"); 
+    printf("\n-----------------------------------\n");  
     sg_lock.unlock();      
 }
 

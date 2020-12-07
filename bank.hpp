@@ -53,7 +53,11 @@ class Bank{
         void deposit(int id, float amt); 
         void withdraw(int id, float amt); 
         float computeTotal(); 
+        float getTotal(); 
+        Account_t * getAccounts(); 
+        int getNumAccounts(); 
         void printBank(); 
+        
 }; 
 
 #endif

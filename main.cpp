@@ -82,7 +82,7 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
         try{
             txn.toID = stoi(temp); 
         }catch(exception & e){
-            cout<<"Error: invalid to account id detected."<<endl; 
+            cout<<"Error: invalid to account id detected:"<<temp<<endl; 
             fileIn.close(); 
             return -4; 
         }
@@ -93,7 +93,7 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
         try{
             txn.fromID = stoi(temp); 
         }catch(exception & e){
-            cout<<"Error: invalid from account id detected."<<endl; 
+            cout<<"Error: invalid from account id detected:"<<temp<<endl; 
             fileIn.close(); 
             return -4; 
         }
@@ -113,7 +113,22 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
     return 1; 
 }
 
+int printLedger(string outFile, Bank &bank){
+    // Output sorted data to output file
+    ofstream fileOut; 
+    fileOut.open(outFile); 
+     if(!fileOut){
+        cout<<"Unable to open the file: "<<outFile<<endl; 
+        return -4; 
+    }
+    Account_t * account = bank.getAccounts(); 
+    int num_accts = bank.getNumAccounts(); 
+    for(int i = 0; i < num_accts; i++){
+        fileOut<<"Account["<<i<<"]: $"<<endl; 
+    }
 
+    fileOut.close();    
+}
 
 //main function
 int main(int argc, char* argv[]){ 
@@ -213,10 +228,13 @@ int main(int argc, char* argv[]){
     //Variable declaration: 
     vector <float> initData; 
     vector <TXN_t> txnData; 
-     
+    int res; 
 
     //read in data from the initialization file and store it to initData
-    readInitData(initFile, initData); 
+    res = readInitData(initFile, initData); 
+    if(res !=1){
+        return -5; 
+    }
     int num_accounts = initData.size(); 
 
     cout<<"Creating Bank with "<<num_accounts<<" accounts and initialized by '"<<initFile<<"'.txt"<<endl; 
@@ -225,7 +243,10 @@ int main(int argc, char* argv[]){
     Bank myBank = Bank(txnAlg, initData);
 
     //Read in transactions
-    readTxnData(txnFile, txnData);
+    res = readTxnData(txnFile, txnData);
+    if(res !=1){
+        return -5; 
+    }
     int data_size = txnData.size(); 
     //Check to make sure that the size of data is larger than the number of threads
     if(num_threads>data_size){

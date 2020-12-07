@@ -21,6 +21,7 @@ class TicketLock{
     void lock(); 
     void unlock();  
     bool lockHeld(); 
+    bool tryLock(); 
 
 }; 
 

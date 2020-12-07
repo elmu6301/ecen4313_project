@@ -19,6 +19,7 @@ Lab 1:
 #include <cmath>
 #include <vector>
 #include <string>
+#include <assert.h>
 
 //Developer includes
 #include "bank_tester.hpp"
@@ -119,31 +120,63 @@ void printTXNS(std::vector <TXN_t> &txnData){
     }
 }
 
+void analyzeThrougput(struct bank_thread_args *args, int num_threads){
+	
+	float avg_throughput_ns = 0; 
+	float avg_throughput_s = 0; 
+	float std_throughput_ns = 0; 
+	float std_throughput_s = 0; 
+	
+	//Calculate agreagate throughputs for both ns and s
+	for(int i = 0; i < num_threads; i++){
+		avg_throughput_ns += args[i].throughput_ns; 
+		avg_throughput_s += args[i].throughput_s; 
+	}
+	//Compute mean throughputs for both ns and s
+	avg_throughput_ns /=(float)num_threads; 
+	avg_throughput_s /=(float)num_threads; 
 
+	//Calculate the standard deviation for both ns and s
+	for(int i = 0; i < num_threads; i++){
+		std_throughput_ns += pow(args[i].throughput_ns - avg_throughput_ns, 2); 
+		std_throughput_s += pow(args[i].throughput_s - avg_throughput_s, 2); 
+	}
+	std_throughput_ns = sqrt(std_throughput_ns/(float)num_threads); 
+	std_throughput_s = sqrt(std_throughput_s/(float)num_threads); 
 
-
+	//Print out results 
+	printf("\n-------------THROUGHPUT ANALYSIS-------------"); 
+	printf("\nThroughput (txns/ns):"); 
+	printf("\n\tAverage (txns/ns): %f", avg_throughput_ns); 
+	printf("\n\tStandard Devation (txns/ns): %f", std_throughput_ns); 
+	printf("\n\nThroughput (txns/s):"); 
+	printf("\n\tAverage (txns/s): %f", avg_throughput_s); 
+	printf("\n\tStandard Devation (txns/s): %f", std_throughput_s); 
+	printf("\n---------------------------------------------\n"); 
+	
+}
 /*************************************************
 	THREAD FUNCTIONS
 **************************************************/
 /*
-	Thread version of bucketsort. Runs bucketsort with the assigned data. 
+	Processes the given transactions in parallel with other threads.
 */
 void *bank_thread(void *args)
 {
+	//Read in all useful arg information 
 	size_t tid = ((struct bank_thread_args *)args)->tid; //*((size_t*)args);
 	std::vector<TXN_t> array = ((struct bank_thread_args *)args)->array;
 
+	//Create local thread variables
+	thread_local struct timespec myStart, myEnd; 
+	thread_local int num_txns = array.size(); 
+	
 	pthread_barrier_wait(&p_bar);
-	if (tid == 1)
-	{
-		clock_gettime(CLOCK_MONOTONIC, &tstart);
-	}
-	pthread_barrier_wait(&p_bar);
+	//Compute local start time
+	clock_gettime(CLOCK_MONOTONIC, &myStart);
 
-	// (*bank).printBank_b(); 
 	//Process each transaction
-	for(int i = 0; i < array.size(); i++){
-		// printf("\nThread[%zu]: ",tid); 
+	for(int i = 0; i < num_txns; i++){
 		//Call the appropriate function based off of the action field
 		if(array[i].action.compare("deposit")== 0){
 			printf("\nThd[%zu] D: %.2f in account[%d]",tid, array[i].amt, array[i].toID); 
@@ -151,18 +184,30 @@ void *bank_thread(void *args)
 		}
 		else if(array[i].action.compare("withdraw")==0){
 			printf("\nThd[%zu] W: %.2f in account[%d]", tid,array[i].amt, array[i].toID);
-			(*bank).withdraw(array[i].toID, array[i].amt);  
+			(*bank).withdraw(array[i].fromID, array[i].amt);  
 		}else if(array[i].action.compare("transfer")==0){
 			printf("\nThd[%zu] T: %.2f from account[%d] to account[%d]",tid, array[i].amt, array[i].fromID,array[i].toID); 
 			(*bank).transfer(array[i].fromID, array[i].toID, array[i].amt); 
 		}
+		(*bank).printBank(); 
 	}
 
+	//Compute local end time
+	clock_gettime(CLOCK_MONOTONIC, &myEnd);
 	pthread_barrier_wait(&p_bar);
-	if (tid == 1)
-	{
-		clock_gettime(CLOCK_MONOTONIC, &tend);
-	}
+
+	//Compute local runtime in nanoseconds and seconds
+	((struct bank_thread_args *)args)->elapsed_ns = (myEnd.tv_sec - myStart.tv_sec) * 1000000000 + (myEnd.tv_nsec - myStart.tv_nsec);
+	((struct bank_thread_args *)args)->elapsed_s =  (((struct bank_thread_args *)args)->elapsed_ns) / 1000000000.0;
+	
+	//Compute local throughput in txns/nanoseconds and txns/seconds
+	((struct bank_thread_args *)args)->throughput_ns = ((float)num_txns)/(((struct bank_thread_args *)args)->elapsed_ns); 
+	((struct bank_thread_args *)args)->throughput_s = ((float)num_txns)/(((struct bank_thread_args *)args)->elapsed_s); 
+	
+	//Print thread information
+	// printf("\nThread[%ld] Elapsed (ns): %llu Throuput (txns/ns): %f", tid, ((struct bank_thread_args *)args)->elapsed_ns,((struct bank_thread_args *)args)->throughput_ns ); 
+	// printf("\nThread[%ld] Elapsed (s): %lf\n Throuput (txns/s): %f", tid,((struct bank_thread_args *)args)->elapsed_s, ((struct bank_thread_args *)args)->throughput_s);
+
 
 	return 0;
 }
@@ -181,30 +226,35 @@ int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 		printf("ERROR; too many threads\n");
 		exit(-1);
 	}
-	// NUM_THREADS = 1; 
 
-	//Global init
+	/* INITIALIZE THREADS & BARRIERS */
 	global_init();
 
-	//Split array into NUM_THREADS parts
-	std::vector<std::vector<TXN_t>> split_arrays = split_vector_array(data, NUM_THREADS);
 	(*bank).printBank();
-	
+
+	/* SETUP ARGUMENTS FOR THREADS */
+	std::vector<std::vector<TXN_t>> split_arrays = split_vector_array(data, NUM_THREADS); //divide transactions
 	struct bank_thread_args args[NUM_THREADS];
 	
 	//Setting up the master thread args data
 	args[0].tid = 1; //i;
 	args[0].array = split_arrays[0];
+	args[0].elapsed_ns = 0; 
+	args[0].elapsed_s = 0; 
+	args[0].throughput_ns = 0; 
+	args[0].throughput_s = 0; 
 
-
-	// launch threads
+	/* LAUNCH THREADS */
 	int ret;
 	size_t i;
-
 	for (i = 1; i < NUM_THREADS; i++)
 	{
 		args[i].tid = i + 1;
 		args[i].array = split_arrays[i];
+		args[i].elapsed_ns = 0; 
+		args[i].elapsed_s = 0; 
+		args[i].throughput_ns = 0; 
+		args[i].throughput_s = 0; 
 		// printf("creating thread %zu\n",args[i].tid);
 		ret = pthread_create(&threads[i], NULL, &bank_thread, &args[i]);
 		if (ret)
@@ -214,9 +264,10 @@ int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 		}
 	}
 
-	bank_thread(&args); // master also calls mergesort_thread
+	//run bank_thread on the main/master thread
+	bank_thread(&args); 
 
-	// join threads
+	/* JOIN THREADS */
 	for (size_t i = 1; i < NUM_THREADS; i++)
 	{
 		ret = pthread_join(threads[i], NULL);
@@ -227,14 +278,17 @@ int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 		}
 		// printf("joined thread %zu\n",i+1);
 	}
-
-	(*bank).printBank(); 
-	global_cleanup();
+	/* ERROR CHECKING */
+	float total = (*bank).computeTotal(); 
+	assert(total == (*bank).getTotal()); //Verify that the total is accurate based off of the account balances
 	
-	unsigned long long elapsed_ns;
-	elapsed_ns = (tend.tv_sec - tstart.tv_sec) * 1000000000 + (tend.tv_nsec - tstart.tv_nsec);
-	printf("\nElapsed (ns): %llu\n", elapsed_ns);
-	double elapsed_s = ((double)elapsed_ns) / 1000000000.0;
-	printf("Elapsed (s): %lf\n", elapsed_s);
+	analyzeThrougput(args, NUM_THREADS); 
+	
+	(*bank).printBank(); 
+	
+	
+	/* CLEAN UP */
+	global_cleanup();
+
 	return 0; 
 }

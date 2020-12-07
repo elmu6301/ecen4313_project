@@ -46,7 +46,15 @@ void TicketLock::lock(){
     lock_held.store(true); 
 }
 
-
+bool TicketLock::tryLock(){
+    int my_num = atomic_fetch_add_explicit(&next_num, 1, memory_order_seq_cst); 
+    int curr_num = atomic_load_explicit(&now_serving,memory_order_seq_cst); 
+    if(curr_num ==my_num){
+        lock_held.store(true); 
+        return true; 
+    }
+    return false;
+}
 /*
     Releases the lock
 */

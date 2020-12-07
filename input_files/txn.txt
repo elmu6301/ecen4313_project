@@ -1,35 +1,18 @@
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-stop
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-transfer,1,0,10.0
-stop
-transfer,2,1,10.0
-transfer,1,0,10.0
-transfer,2,1,10.0
-transfer,1,0,10.0
-transfer,2,1,10.0
-stop
-deposit,0,-1,100
-deposit,1,-1,99.75
-deposit,2,1,99.25
-withdraw,0,-1, 100
-withdraw,1,-1,99.75
-withdraw,2,-1,99.25
+deposit,0,-1,10.10
+deposit,0,-1,10.10
+transfer 1, 0, 10
+transfer 0, 1, 10
+transfer 1, 0, 10
+transfer 0, 1, 10
+transfer 1, 0, 10
+transfer 0, 1, 10
+transfer 1, 0, 10
+transfer 0, 1, 10
+transfer 1, 0, 10
+transfer 0, 1, 10
+transfer 1, 0, 10
+transfer 0, 1, 10
+transfer 1, 0, 10
+transfer 0, 1, 10
+withdraw,-1,1,10.10
+withdraw,-1,1,10.10

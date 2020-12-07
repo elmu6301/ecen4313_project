@@ -28,6 +28,10 @@ struct TXN_t{
 struct bank_thread_args {
     size_t tid; //Thread id
     std::vector<TXN_t> array;
+    unsigned long long elapsed_ns; 
+    double elapsed_s ; 
+    float throughput_ns; 
+    float throughput_s; 
 }; 
 
 
