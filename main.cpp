@@ -70,44 +70,47 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
     while(getline(fileIn, line)){
         
         //Get action
-        txn.action = line.substr(0,line.find(",")); 
-        if(txn.action.compare("stop")==0){
-            fileIn.close(); 
-            return 1; 
-        }
-    
-        // Get to account id
-        line = line.substr(line.find(",")+1);
-        temp = line.substr(0,line.find(",")); 
-        try{
-            txn.toID = stoi(temp); 
-        }catch(exception & e){
-            cout<<"Error: invalid to account id detected:"<<temp<<endl; 
-            fileIn.close(); 
-            return -4; 
-        }
-        //Get from account id
-        line = line.substr(line.find(",")+1);
-        temp = line.substr(0,line.find(",")); 
+        if(line.find('#')!=0){
+            txn.action = line.substr(0,line.find(",")); 
+            if(txn.action.compare("stop")==0){
+                fileIn.close(); 
+                return 1; 
+            }
+        
+            // Get to account id
+            line = line.substr(line.find(",")+1);
+            temp = line.substr(0,line.find(",")); 
+            try{
+                txn.toID = stoi(temp); 
+            }catch(exception & e){
+                cout<<"Error: invalid to account id detected:"<<temp<<endl; 
+                fileIn.close(); 
+                return -4; 
+            }
+            //Get from account id
+            line = line.substr(line.find(",")+1);
+            temp = line.substr(0,line.find(",")); 
 
-        try{
-            txn.fromID = stoi(temp); 
-        }catch(exception & e){
-            cout<<"Error: invalid from account id detected:"<<temp<<endl; 
-            fileIn.close(); 
-            return -4; 
-        }
-        //Get amount 
-        line = line.substr(line.find(",")+1);
-        try{
-            txn.amt = stof(line); 
-        }catch(exception & e){
-            cout<<"Error: invalid amount detected."<<endl; 
-            fileIn.close(); 
-            return -4; 
-        }
-        // cout<<"TXN["<<i<<"]: action = "<<txn.action<<" toID = "<<txn.toID<<" fromID = "<<txn.fromID<<" amt = "<<txn.amt<<endl; 
-         data.push_back(txn); 
+            try{
+                txn.fromID = stoi(temp); 
+            }catch(exception & e){
+                cout<<"Error: invalid from account id detected:"<<temp<<endl; 
+                fileIn.close(); 
+                return -4; 
+            }
+            //Get amount 
+            line = line.substr(line.find(",")+1);
+            try{
+                txn.amt = stof(line); 
+            }catch(exception & e){
+                cout<<"Error: invalid amount detected."<<endl; 
+                fileIn.close(); 
+                return -4; 
+            }
+            // cout<<"TXN["<<i<<"]: action = "<<txn.action<<" toID = "<<txn.toID<<" fromID = "<<txn.fromID<<" amt = "<<txn.amt<<endl; 
+            data.push_back(txn); 
+            }
+       
     }
     fileIn.close(); 
     return 1; 
