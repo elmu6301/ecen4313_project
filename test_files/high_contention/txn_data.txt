@@ -1,0 +1,23 @@
+#Withdraw phase
+withdraw -1, 0, 100.00
+withdraw -1, 1, 100.00
+withdraw -1, 2, 100.00
+withdraw -1, 3, 100.00
+withdraw -1, 4, 100.00
+withdraw -1, 5, 100.00
+withdraw -1, 6, 100.00
+withdraw -1, 7, 100.00
+withdraw -1, 8, 100.00
+withdraw -1, 9, 100.00
+#Deposit phase
+withdraw 0, -1, 100.00
+withdraw 1, -1, 100.00
+withdraw 2, -1, 100.00
+withdraw 3, -1, 100.00
+withdraw 4, -1, 100.00
+withdraw 5, -1, 100.00
+withdraw 6, -1, 100.00
+withdraw 7, -1, 100.00
+withdraw 8, -1, 100.00
+withdraw 9, -1, 100.00
+#Transaction Phase
