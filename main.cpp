@@ -107,12 +107,12 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
                 fileIn.close(); 
                 return -4; 
             }
-            cout<<"TXN["<<i<<"]: action = "<<txn.action<<", toID = "<<txn.toID<<", fromID = "<<txn.fromID<<", amt = "<<txn.amt<<endl; 
+            // cout<<"TXN["<<i<<"]: action = "<<txn.action<<", toID = "<<txn.toID<<", fromID = "<<txn.fromID<<", amt = "<<txn.amt<<endl; 
             txn.txnID = i; 
             data.push_back(txn); 
             
             }else{
-                printf("\n"); 
+                // printf("\n"); 
             }
             i++; 
             

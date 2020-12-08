@@ -1,4 +1,11 @@
-Account[0]: $140.20
-Account[1]: $150.45
-Account[2]: $140.75
-Total: $431.40
+Account[0]: $1000.00
+Account[1]: $1000.00
+Account[2]: $1000.00
+Account[3]: $1000.00
+Account[4]: $1000.00
+Account[5]: $1000.00
+Account[6]: $1000.00
+Account[7]: $1000.00
+Account[8]: $1000.00
+Account[9]: $1000.00
+Total: $10000.00

@@ -153,15 +153,13 @@ void Bank::withdraw(int id, float amt){
     thread_local float newBal;  
     thread_local float tot; 
     thread_local float newTot; 
-    // printf("\nWidthdrawing $%.2f from account[%d]", amt, id); 
     switch(TXN_METHOD){
 		case SGL: 
             sg_lock.lock(); 
             err = account_withdraw(id,amt); 
-            printf("\nAccount[%d] updated balance: $%.2f",id, accounts[id].bal);
             sg_lock.unlock(); 
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f",id, amt); 
             }
 			break;
 		case PHASE_2: 
@@ -169,7 +167,7 @@ void Bank::withdraw(int id, float amt){
             err = account_withdraw(id,amt); 
             account_locks[id].unlock(); 
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f",id, amt); 
             }
 			break; 
 		case STM: 
@@ -177,7 +175,7 @@ void Bank::withdraw(int id, float amt){
                 err = account_withdraw(id,amt); 
             }
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f",id, amt); 
             }
 			break; 
 		case HTM_SGL: 
@@ -202,7 +200,7 @@ void Bank::withdraw(int id, float amt){
                 sg_lock.unlock(); 
             }
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", id, amt); 
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f",id, amt);  
             }
 			break;
 		case OPTIMIST: 
@@ -252,7 +250,7 @@ void Bank::transfer(int fromId, int toId, float amt){
             } 
             sg_lock.unlock(); 
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f", fromId, amt);  
             }
 
 			break;
@@ -266,14 +264,13 @@ void Bank::transfer(int fromId, int toId, float amt){
                     account_locks[toId].unlock(); 
                 }
             }
-
             if((err=account_withdraw(fromId,amt))==1){
                 account_deposit(toId,amt); 
             } 
             account_locks[toId].unlock(); 
             account_locks[fromId].unlock(); 
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f", fromId, amt); 
             }
 			break; 
 		case STM: 
@@ -283,12 +280,11 @@ void Bank::transfer(int fromId, int toId, float amt){
                 } 
             };
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f", fromId, amt);   
             }
 			break; 
 		case HTM_SGL: 
-			//Allow for NUM_RETRIESprintf("got here"); 
-            printf("\nsuc = %d",suc);
+			//Allow for NUM_RETRIES
             for(int i = 0; !suc && i < NUM_RETRIES; i++){
                 if(_xbegin() == _XBEGIN_STARTED){
                     //Check to see if the lock is held
@@ -312,11 +308,8 @@ void Bank::transfer(int fromId, int toId, float amt){
                     } 
                 sg_lock.unlock(); 
             }
-            printf("\nUpdatefromAcct[%d] = $%.2f, toAcct[%d] = $%.2f",fromId,accounts[fromId].bal,
-                    toId,accounts[toId].bal) ; 
-            // printf("\nerror = %d",err); 
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f", fromId, amt);  
             }
 			break;
 		case OPTIMIST:
@@ -346,7 +339,7 @@ void Bank::transfer(int fromId, int toId, float amt){
                 sg_lock.unlock(); 
             }
             if(err==-1){
-                printf("\nOverdraw erron on account[%d]and amt =  $%.2f", fromId, amt);  
+                printf("\nOverdraw error on on account[%d] and amt =  $%.2f", fromId, amt);  
             }
           
 			break;
