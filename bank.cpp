@@ -256,20 +256,14 @@ void Bank::transfer(int fromId, int toId, float amt){
 			break;
 		case PHASE_2: 
             bool fromHeld, toHeld; 
-            while((fromHeld = account_locks[fromId].tryLock()) == false  || (toHeld = account_locks[toId].tryLock()) == false){
-                //Only hold 1 lock so release it
-                if(fromHeld){
-                    account_locks[fromId].unlock(); 
-                }else if(toHeld){
-                    account_locks[toId].unlock(); 
-                }
-            }
-            if((err=account_withdraw(fromId,amt))==1){
+            account_locks[fromId].lock();
+            err=account_withdraw(fromId,amt); 
+            account_locks[fromId].unlock();
+            if(err==1){
+                account_locks[toId].lock(); 
                 account_deposit(toId,amt); 
-            } 
-            account_locks[toId].unlock(); 
-            account_locks[fromId].unlock(); 
-            if(err==-1){
+                account_locks[toId].unlock(); 
+            }else{
                 printf("\nOverdraw error on on account[%d] and amt =  $%.2f", fromId, amt); 
             }
 			break; 
