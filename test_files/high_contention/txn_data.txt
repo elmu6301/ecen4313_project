@@ -32,6 +32,26 @@ transfer, 7, 6, 100.00
 transfer, 8, 7, 100.00
 transfer, 9, 8, 100.00
 transfer, 0, 9, 100.00
+#Transfer Phase 2 - throttle 1
+transfer, 0, 1, 22.25
+transfer, 0, 2, 22.25
+transfer, 0, 3, 22.25
+transfer, 0, 4, 22.25
+transfer, 0, 5, 22.25
+transfer, 0, 6, 22.25
+transfer, 0, 7, 22.25
+transfer, 0, 8, 22.25
+transfer, 0, 9, 22.25
+#Transfer Phase 3 - throttle 1
+transfer, 1, 0, 22.25
+transfer, 2, 0, 22.25
+transfer, 3, 0, 22.25
+transfer, 4, 0, 22.25
+transfer, 5, 0, 22.25
+transfer, 6, 0, 22.25
+transfer, 7, 0, 22.25
+transfer, 8, 0, 22.25
+transfer, 9, 0, 22.25
 #Transfer Phase 3 - throttle 2 Accounts
 transfer, 0, 1, 10.00
 transfer, 0, 1, 10.00
@@ -234,7 +254,6 @@ transfer, 1, 0, 10.00
 transfer, 1, 0, 10.00
 transfer, 1, 0, 10.00
 transfer, 1, 0, 10.00
-stop
 #Transfer Phase #5 
 transfer, 0, 1, 10.00
 transfer, 1, 0, 10.00
@@ -266,23 +285,3 @@ transfer, 0, 1, 10.00
 transfer, 1, 0, 10.00
 transfer, 0, 1, 10.00
 transfer, 1, 0, 10.00
-#Transfer Phase 2 - throttle 1
-transfer, 0, 1, 22.25
-transfer, 0, 2, 22.25
-transfer, 0, 3, 22.25
-transfer, 0, 4, 22.25
-transfer, 0, 5, 22.25
-transfer, 0, 6, 22.25
-transfer, 0, 7, 22.25
-transfer, 0, 8, 22.25
-transfer, 0, 9, 22.25
-#Transfer Phase 3 - throttle 1
-transfer, 1, 0, 22.25
-transfer, 2, 0, 22.25
-transfer, 3, 0, 22.25
-transfer, 4, 0, 22.25
-transfer, 5, 0, 22.25
-transfer, 6, 0, 22.25
-transfer, 7, 0, 22.25
-transfer, 8, 0, 22.25
-transfer, 9, 0, 22.25
