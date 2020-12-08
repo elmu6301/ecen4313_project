@@ -1,10 +1,13 @@
 /*
 ECEN 4313: Concurrent Programming
 Author: Elena Murray
-Date: X/XX/2020
-Lab XXXX: 
+Date: 12/1/2020
+LFinal Project
 */
 
+/*************************************************
+	FILE INCLUDES
+**************************************************/
 //Library includes
 #include <fstream>
 #include <iostream>
@@ -20,15 +23,21 @@ using namespace std;
 #include "bank.hpp"
 #include "bank_tester.hpp"
 
-//Global Variables
+/*************************************************
+	GLOBAL VARIABLES
+**************************************************/
 char my_name[] = "Elena Murray"; 
 
 
-void printUsage(){
-    printf("bank [--init initfile.txt] [--tnx tnxfile.txt] [--o outfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htm,opt>]\n");
-}
 
+/*************************************************
+	FILE READING AND WRITING FUNCTIONS
+**************************************************/
 
+/*
+    Reads in the initialization file and creates a vector of floats
+    based off of the file information.
+*/
 int readInitData(string initFile, std::vector <float> &data){
     ifstream fileIn;  
     fileIn.open(initFile); 
@@ -54,6 +63,10 @@ int readInitData(string initFile, std::vector <float> &data){
     return 1; 
 }
 
+/*
+    Reads in the transaction file and creates a vector of TXN_t structs
+    based off of the file information.
+*/
 int readTxnData(string txnFile, std::vector <TXN_t> &data){
     ifstream fileIn;  
     fileIn.open(txnFile); 
@@ -122,6 +135,9 @@ int readTxnData(string txnFile, std::vector <TXN_t> &data){
     return 1; 
 }
 
+/*
+    Writes out the bank ledger including the total to outFile. 
+*/
 int printLedger(string outFile, Bank &bank){
     // Output sorted data to output file
     ofstream fileOut; 
@@ -140,7 +156,16 @@ int printLedger(string outFile, Bank &bank){
     return 1; 
 }
 
-//main function
+/*************************************************
+	MAIN FUNCTION
+**************************************************/
+/*
+    Prints usage. 
+*/
+void printUsage(){
+    printf("bank [--init initfile.txt] [--tnx tnxfile.txt] [--o outfile.txt] [-t NUM_THREADS] [--alg=<sgl,2p1,stm,htm,opt>]\n");
+}
+
 int main(int argc, char* argv[]){ 
 
     //variable for parsing the command line

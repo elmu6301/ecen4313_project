@@ -3,11 +3,14 @@
 /*
 ECEN 4313: Concurrent Programming
 Author: Elena Murray
-Date: 9/21/2020
-Lab 1: 
+Date: 12/1/2020
+Final Project
+
     
 */
-
+/*************************************************
+	FILE INCLUDES
+**************************************************/
 using namespace std;
 
 #include <stdio.h>
@@ -17,6 +20,9 @@ using namespace std;
 
 #include "bank.hpp"
 
+/*************************************************
+	STRUCTURES
+**************************************************/
 struct TXN_t{
     string action; 
     int toID; 
@@ -35,7 +41,9 @@ struct bank_thread_args {
     float throughput_s; 
 }; 
 
-
+/*************************************************
+	FUNCTION DECLARATIONS
+**************************************************/
 
 int bank_tester(int num_threads,  Bank &myBank, std::vector <TXN_t> &data ); 
 

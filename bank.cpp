@@ -31,6 +31,11 @@ using namespace std;
 // /*************************************************
 // 	CONSTRUCTOR and DESTRUCTOR
 // **************************************************/
+
+/*
+    Creates a bank object with a given transaction method and accounts 
+    initialized to starting balances.
+*/
 Bank::Bank(int txn_method, std::vector <float> &startingBalances){
     TXN_METHOD = txn_method; 
     NUM_ACCOUNTS = startingBalances.size(); 
@@ -47,6 +52,9 @@ Bank::Bank(int txn_method, std::vector <float> &startingBalances){
     account_locks = new TicketLock[NUM_ACCOUNTS]; 
  }
 
+/*
+    Destructor. Frees all allocated data. 
+*/
 Bank::~Bank(){
     delete accounts; 
     delete account_locks; 
@@ -56,11 +64,18 @@ Bank::~Bank(){
 // 	BANK FUNCTIONS
 // **************************************************/
 
+/*
+    Deposits the given amount into the account specified by id. 
+*/
 void __attribute__((transaction_safe)) Bank::account_deposit(int id, float amt){
     this->accounts[id].bal += amt; 
     this->total +=amt;
 }
 
+/*
+    Withdraws the given amount from the account specified by id if the account has 
+    enough money. Otherwise the withdraw is not made and the function returns -1.  
+*/
 int __attribute__((transaction_safe)) Bank::account_withdraw(int id, float amt){
     if(this->accounts[id].bal < amt){
         return -1; 
@@ -70,6 +85,10 @@ int __attribute__((transaction_safe)) Bank::account_withdraw(int id, float amt){
     return 1; 
 }
 
+/*
+    Handles concurrent deposits and deposits a given amount into the account specified
+    by id based off of the transaction method. 
+*/
 void Bank::deposit(int id, float amt){
     if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
         return; 
@@ -143,6 +162,11 @@ void Bank::deposit(int id, float amt){
     
 }
 
+/*
+    Handles concurrent withdraws and withdraws a given amount into the account specified
+    by id based off of the transaction method. If the withdraw is unsuccessful, no money 
+    will be removed.
+*/
 void Bank::withdraw(int id, float amt){
     if(amt < 0 || id < 0 || id >= NUM_ACCOUNTS){
         return; 
@@ -228,7 +252,11 @@ void Bank::withdraw(int id, float amt){
     
 }
 
-
+/*
+    Handles concurrent transfers and transfers a given amount into the account specified
+    by id based off of the transaction method. If the withdraw portion of the transfer
+    is unsuccessful, no money will be removed or deposited. 
+*/
 void Bank::transfer(int fromId, int toId, float amt){
     //Check for invalid amounts and account ids
     if(amt < 0 || toId < 0 || toId >= NUM_ACCOUNTS || fromId < 0 || fromId >= NUM_ACCOUNTS || fromId == toId){
@@ -340,7 +368,9 @@ void Bank::transfer(int fromId, int toId, float amt){
     }
 }
 
-
+/*
+    Computes the total based off of the account balances. 
+*/
 float Bank::computeTotal(){
     float comp_total = 0; 
     for(int i = 0; i < NUM_ACCOUNTS; i++){
@@ -349,10 +379,16 @@ float Bank::computeTotal(){
     return comp_total; 
 }
 
+/*
+    Returns the total field. 
+*/
 float Bank::getTotal(){
     return total; 
 }
 
+/*
+    Returns the balance for a given account.
+*/
  float Bank::getAccountBalance(int id){
     if(0 <= id && id < NUM_ACCOUNTS){
         return accounts[id].bal; 
@@ -360,10 +396,16 @@ float Bank::getTotal(){
     return -1;  
  }
 
+/*
+    Returns the number of accounts in the bank.
+*/
  int Bank::getNumAccounts(){
     return NUM_ACCOUNTS; 
- }
+}
 
+/*
+    Prints the bank information including account balances by id and the total. 
+*/
 void Bank::printBank(){
     sg_lock.lock();            
     printf("\n--------------- Bank --------------"); 

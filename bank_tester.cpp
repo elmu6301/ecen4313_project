@@ -1,8 +1,8 @@
 /*
 ECEN 4313: Concurrent Programming
 Author: Elena Murray
-Date: 9/30/2020
-Lab 1: 
+Date: 12/1/2020
+Final Project
 
 *Note modified from test.c provide
     
@@ -49,6 +49,7 @@ void printTXNS(std::vector <TXN_t> &txnData);
 int deposit(int accountID, float amount); 
 void withdraw(int accountID, float amount); 
 void transfer(int fromAccountID, int toAccountID, float amount); 
+void analyzeThrougput(struct bank_thread_args *args, int num_threads); 
 /*************************************************
 	GLOBAL INIT AND CLEANING FUNCTIONS
 **************************************************/
@@ -285,8 +286,6 @@ int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 	assert(total == (*bank).getTotal()); //Verify that the total is accurate based off of the account balances
 	
 	analyzeThrougput(args, NUM_THREADS); 
-	// (*bank).printBank(); 
-	
 
 	
 	/* CLEAN UP */

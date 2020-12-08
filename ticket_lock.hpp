@@ -4,7 +4,7 @@
 ECEN 4313: Concurrent Programming
 Author: Elena Murray
 Date: 10/17/2020
-Lab 2: 
+Final Project
     
 */
 #include <stdio.h>

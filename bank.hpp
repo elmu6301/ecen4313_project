@@ -3,11 +3,14 @@
 /*
 ECEN 4313: Concurrent Programming
 Author: Elena Murray
-Date: 10/17/2020
-Lab 2: 
+Date: 12/1/2020
+Final Project 
     
 */
 
+/*************************************************
+	FILE INCLUDES
+**************************************************/
 
 #include <stdio.h>
 #include <string>
@@ -18,6 +21,9 @@ Lab 2:
 
 using namespace std;
 
+/*************************************************
+	STRUCTURES AND ENUMS
+**************************************************/
 enum TXN_IMP{
     SGL, 
     PHASE_2,
@@ -31,6 +37,9 @@ struct Account_t{
     float bal; 
 }; 
 
+/*************************************************
+	BANK CLASS
+**************************************************/
 class Bank{
     private:
         int NUM_ACCOUNTS; 
