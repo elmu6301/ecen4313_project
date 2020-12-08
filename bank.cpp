@@ -260,7 +260,7 @@ void Bank::transfer(int fromId, int toId, float amt){
                 //Only hold 1 lock so release it
                 if(fromHeld){
                     account_locks[fromId].unlock(); 
-                }else{
+                }else if(toHeld){
                     account_locks[toId].unlock(); 
                 }
             }

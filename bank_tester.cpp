@@ -179,14 +179,14 @@ void *bank_thread(void *args)
 	for(int i = 0; i < num_txns; i++){
 		//Call the appropriate function based off of the action field
 		if(array[i].action.compare("deposit")== 0){
-			// printf("\nThd[%zu] D[%d]: %.2f in account[%d]",tid, array[i].txnID, array[i].amt, array[i].toID); 
+			printf("\nThd[%zu] D[%d]: %.2f in account[%d]",tid, array[i].txnID, array[i].amt, array[i].toID); 
 			(*bank).deposit(array[i].toID, array[i].amt); 
 		}
 		else if(array[i].action.compare("withdraw")==0){
-			// printf("\nThd[%zu] W[%d]: %.2f in account[%d]", tid,array[i].txnID, array[i].amt, array[i].fromID);
+			printf("\nThd[%zu] W[%d]: %.2f in account[%d]", tid,array[i].txnID, array[i].amt, array[i].fromID);
 			(*bank).withdraw(array[i].fromID, array[i].amt);  
 		}else if(array[i].action.compare("transfer")==0){
-			// printf("\nThd[%zu] T[%d]: %.2f from account[%d] to account[%d]",tid, array[i].txnID,array[i].amt, array[i].fromID,array[i].toID); 
+			printf("\nThd[%zu] T[%d]: %.2f from account[%d] to account[%d]",tid, array[i].txnID,array[i].amt, array[i].fromID,array[i].toID); 
 			(*bank).transfer(array[i].fromID, array[i].toID, array[i].amt); 
 		}
 	}
@@ -279,12 +279,13 @@ int bank_tester(int num_threads, Bank &myBank, std::vector <TXN_t> &data)
 	}
 	
 	/* ERROR CHECKING */
+	(*bank).printBank(); 
 	float total = (*bank).computeTotal(); 
 	printf("\nCalculated Total: %.2f Bank Total %.2f\n", total,(*bank).getTotal()); 
 	assert(total == (*bank).getTotal()); //Verify that the total is accurate based off of the account balances
 	
 	analyzeThrougput(args, NUM_THREADS); 
-	(*bank).printBank(); 
+	// (*bank).printBank(); 
 	
 
 	
